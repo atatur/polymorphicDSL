@@ -295,7 +295,7 @@
                     <version>${antlr.version}</version>
                     <configuration>
                         <arguments>
-                            <argumenent>-visitor</argumenent>
+                            <argument>-visitor</argument>
                         </arguments>
                     </configuration>
                     <executions>

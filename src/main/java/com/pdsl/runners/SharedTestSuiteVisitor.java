@@ -87,7 +87,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         TestResourceFinder finder = finderGenerator.get(includes,excludes);
         Set<URI> testResources = new HashSet<>();
         // Find the files we will be testing
-        Optional<Collection<URI>> resources =  finder.scanForTestResources(resourceRoot);
+        Optional<Collection<URI>> resources = finder.scanForTestResources(resourceRoot);
         resources.ifPresent(testResources::addAll);
         if (testResources.isEmpty()) {
             throw new IllegalArgumentException(String.format(

@@ -26,7 +26,7 @@ public class JupiterTagFilteringTest {
         assert(totalRunTests == 1);
     }
 
-    private static final Supplier<ParseTreeListener> parseTreeListenerSupplier = () -> new AllGrammarsParserBaseListener();
+    private static final Supplier<ParseTreeListener> parseTreeListenerSupplier = AllGrammarsParserBaseListener::new;
 
     private static class PdslExtension extends PdslGherkinInvocationContextProvider {
 

@@ -1,6 +1,6 @@
 package com.pdsl.uat.java;
 
-import com.pdsl.grammars.PdslHelper;
+import com.pdsl.grammars.*;
 import com.pdsl.runners.PdslGherkinApplication;
 import com.pdsl.runners.PdslTest;
 import com.pdsl.runners.junit.PdslGherkinJUnit4Runner;
@@ -10,9 +10,7 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
-import com.pdsl.grammars.PdslJavaTestRunnerParserListener;
-import com.pdsl.grammars.JavaTestRunnerLexer;
-import com.pdsl.grammars.PdslJavaTestRunnerParser;
+
 import javax.inject.Provider;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +21,8 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(PdslGherkinJUnit4Runner.class)
 @PdslGherkinApplication(
         resourceRoot = "src/test/resources/framework_specifications/features/java",
+        dslRecognizerParser = AllGrammarsParser.class,
+        dslRecognizerLexer = AllGrammarsLexer.class,
         recognizerRule = "polymorphicDslAllRules"
 )
 public class JavaTestRunner {
@@ -30,7 +30,7 @@ public class JavaTestRunner {
     @PdslTest(
             parser = PdslJavaTestRunnerParser.class,
             lexer = JavaTestRunnerLexer.class,
-            includesResources = "PdslJavaTestRunner.feature",
+            includesResources = "JavaTestRunner.feature",
             listener = JavaTestRunner.PdslJavaTestRunnerProvider.class
     )
     /*

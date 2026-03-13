@@ -14,7 +14,8 @@ import javax.inject.Provider;
 @PdslGherkinApplication(
         applicationName = "Polymorphic DSL Test Framework",
         context = "User Acceptance Testing",
-        resourceRoot = "src/test/resources/framework_specifications/features/java"
+        resourceRoot = "src/test/resources/framework_specifications/features/java",
+        recognizerRule = "polymorphicDslAllRules"
 )
 public class TaggedScenarioRunner {
     @PdslTest(

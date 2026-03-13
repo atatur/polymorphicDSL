@@ -65,18 +65,22 @@ public class ExampleTokens {
         GherkinStep step = featureOptional.get().getOptionalGherkinScenarios().get().get(0).getStepsList().get().get(1);
         GherkinExamplesTable examplesTable = featureOptional.get().getOptionalGherkinScenarios().get().get(0).getExamples().get().get(0);
         List<Map<String, String>> rows = examplesTable.getRows();
-        GherkinString stepDataTableCell = step.getDataTable().get().get(0).get(0);
+        assertThat(rows).hasSize(2);
         // Assert
+        GherkinString stepDataTableCell = step.getDataTable().get().get(0).get(0);
         // First examples row substitutions
         assertThat(stepDataTableCell.hasSubstitutions()).isTrue();
         Map<String, String> firstRowSubs = rows.get(0);
         assertThat(step.getStepContent().getStringWithSubstitutions(firstRowSubs))
                 .isEqualTo("    Given the quatre:\n");
-        assertThat("cinq").isEqualTo(stepDataTableCell.getStringWithSubstitutions(firstRowSubs));
+        assertThat(stepDataTableCell.getStringWithSubstitutions(firstRowSubs))
+                .isEqualTo("cinq");
 
         // Second examples row substitutions
         Map<String, String> secondRowSubs = rows.get(1);
-        assertThat("    Given the quatro:\n").isEqualTo(step.getStepContent().getStringWithSubstitutions(secondRowSubs));
-        assertThat("cinco").isEqualTo(stepDataTableCell.getStringWithSubstitutions(secondRowSubs));
+        assertThat(step.getStepContent().getStringWithSubstitutions(secondRowSubs))
+                .isEqualTo("    Given the quatro:\n");
+        assertThat(stepDataTableCell.getStringWithSubstitutions(secondRowSubs))
+                .isEqualTo("cinco");
     }
 }

@@ -137,20 +137,35 @@ public abstract class PdslGeneralInvocationContextProvider implements Invocation
         if (pdslTestParameter.getRecognizedByLexer().isPresent() && pdslTestParameter.getRecognizedByParser().isPresent()) {
             return executorHelper.makeDefaultFilter(pdslTestParameter.getParser(), pdslTestParameter.getLexer(),
                     pdslTestParameter.getRecognizedByParser().get(), pdslTestParameter.getRecognizedByLexer().get(),
-                    pdslTestParameter.getStartRule(),
+                    getRequiredStartRule(pdslTestParameter),
                     pdslTestParameter.getRecognizerRule().isPresent() ? pdslTestParameter.getRecognizerRule().get() : configParameter.getRecognizerRule()
                     );
         }
         // Otherwise use the recognizer specified in the configuration. If none specified, the parser used by the
         // pdslTest will be used as the recognizer as well.
-        PolymorphicDslPhraseFilter phraseFilter = executorHelper.makeDefaultFilter(pdslTestParameter.getParser(),
+        return executorHelper.makeDefaultFilter(pdslTestParameter.getParser(),
                 pdslTestParameter.getLexer(),
                 configParameter.getDslRecognizerParser().isPresent() ? configParameter.getDslRecognizerParser().get() : pdslTestParameter.getParser(),
                 configParameter.getDslRecognizerLexer().isPresent() ? configParameter.getDslRecognizerLexer().get() : pdslTestParameter.getLexer(),
-                pdslTestParameter.getStartRule(),
+                getRequiredStartRule(pdslTestParameter),
                 pdslTestParameter.getRecognizerRule().isPresent() ? pdslTestParameter.getRecognizerRule().get() : configParameter.getRecognizerRule()
         );
-        return phraseFilter;
+    }
+
+    /**
+     * Validates and retrieves the start rule from the test parameter.
+     *
+     * @param pdslTestParameter the test parameter containing the start rule
+     * @return the start rule string
+     * @throws IllegalArgumentException if the start rule is not present
+     */
+    private String getRequiredStartRule(PdslTestParameter pdslTestParameter) {
+        return pdslTestParameter.getStartRule().orElseThrow(() ->
+                new IllegalArgumentException(
+                        "Start rule is required for creating the phrase filter. " +
+                                "Please provide a start rule using PdslTestParameter.Builder.withStartRule()"
+                )
+        );
     }
 
     /**

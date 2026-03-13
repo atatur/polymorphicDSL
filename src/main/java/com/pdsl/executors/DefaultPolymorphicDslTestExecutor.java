@@ -159,7 +159,7 @@ public class DefaultPolymorphicDslTestExecutor implements TraceableTestRunExecut
     public MetadataTestRunResults runTestsWithMetadata(Collection<TestCase> testCases,
                                                        ParseTreeListener subgrammarListener, String context) {
         notifyBeforeTestSuite(testCases, subgrammarListener, context);
-        MetadataTestRunResults results = walk(testCases, new InterpreterObj(subgrammarListener),
+        MetadataTestRunResults results = walk(testCases, InterpreterObj.ofListener(() -> subgrammarListener),
                 context);
         notifyAfterTestSuite(testCases, subgrammarListener, results, context);
         return results;

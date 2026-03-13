@@ -355,7 +355,7 @@ public class PdslConfigParameter {
                                     new String[] {param.getTagExpression()},
                                     param.getIncludesResources(),
                                     param.getExcludesResources(),
-                                    i.interpreterObj().getStartRule(),
+                                    i.interpreterObj().getStartRule().orElse(param.getStartRule().orElse(PdslTestParams.DEFAULT_ALL_RULE)),
                                     param.getRecognizerRule().isPresent() ? param.getRecognizerRule().get() : config.getRecognizerRule()
                             )
                     ).toList().toArray(new InterpreterParam[]{});
@@ -368,7 +368,7 @@ public class PdslConfigParameter {
                         new String[] {param.getTagExpression()},
                         param.getIncludesResources(),
                         param.getExcludesResources(),
-                        param.getStartRule(),
+                        param.getStartRule().orElse(PdslTestParams.DEFAULT_ALL_RULE),
                         param.getRecognizerRule().isPresent() ? param.getRecognizerRule().get() : config.getRecognizerRule()
                 )
         };
