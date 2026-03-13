@@ -1,5 +1,6 @@
 package com.pdsl.uat.java.sut;
 
+import com.pdsl.grammars.*;
 import com.pdsl.runners.PdslConfiguration;
 import com.pdsl.runners.PdslTest;
 import com.pdsl.runners.junit.PdslJUnit4ConfigurableRunner;
@@ -8,14 +9,15 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.junit.runner.RunWith;
 
 import javax.inject.Provider;
-import com.pdsl.grammars.AlphaParser;
-import com.pdsl.grammars.AlphaLexer;
-import com.pdsl.grammars.AlphaParserBaseListener;
+
 @RunWith(PdslJUnit4ConfigurableRunner.class)
 @PdslConfiguration(
         specificationFactoryProvider = PdslConfigurableExecutorTest.SpecificationFactoryProvider.class,
         testCaseFactoryProvider = PdslConfigurableExecutorTest.TestCaseFactoryProvider.class,
-        resourceRoot = "src/test/resources/sentences/"
+        resourceRoot = "src/test/resources/sentences/",
+        dslRecognizerParser = AllGrammarsParser.class,
+        dslRecognizerLexer = AllGrammarsLexer.class,
+        recognizerRule = "polymorphicDslAllRules"
 )
 public class NoRecognizerRunner {
 

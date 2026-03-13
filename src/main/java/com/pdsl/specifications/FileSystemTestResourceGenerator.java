@@ -35,7 +35,11 @@ public class FileSystemTestResourceGenerator implements TestResourceFinderGenera
         if (resourceRoot.startsWith("file:///")) {
             return Arrays.stream(resources).map(resourceRoot::concat).collect(Collectors.toList());
         }
-        String root = !resourceRoot.endsWith("/") ? "**/" + resourceRoot + "/" : "**/" + resourceRoot;
+        String prefix = "**/";
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            prefix = "**";
+        }
+        String root = prefix + resourceRoot + (resourceRoot.endsWith("/") ? "" : "/");
         return Arrays.stream(resources).map(root::concat).collect(Collectors.toList());
     }
     @Override
@@ -46,7 +50,6 @@ public class FileSystemTestResourceGenerator implements TestResourceFinderGenera
         // Find the files we will be testing
         PathMatcher pathMatcher = new GlobPathMatcher(getGlobResourcePaths(includes),
                 getGlobResourcePaths(excludes));
-        TestResourceFinder finder = new FileSystemTestResourceFinder(pathMatcher);
-        return finder;
+        return new FileSystemTestResourceFinder(pathMatcher);
     }
 }

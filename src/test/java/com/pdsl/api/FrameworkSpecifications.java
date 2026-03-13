@@ -5,6 +5,7 @@ import com.pdsl.grammars.*;
 import com.pdsl.reports.TestRunResults;
 import com.pdsl.transformers.DefaultPolymorphicDslPhraseFilter;
 import com.pdsl.transformers.PolymorphicDslPhraseFilter;
+import org.junit.After;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -20,29 +21,29 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class FrameworkSpecifications {
 
+    @After
+    public void cleanUp() {
+        System.setProperty("pdsl.filterDuplicates", "false");
+    }
+
     @Test
     public void gherkinPdslTestFramework_meetsTestSpecifications() throws IOException, URISyntaxException {
 
         final URI testResources = getClass().getClassLoader()
                 .getResource("framework_specifications/features/PdslTestFramework.feature").toURI();
         // Arrange
-        Set<URI> dslFiles = new HashSet<>();
-        Path tmpDir = Files.createTempDirectory(String.format("pdsl_temp_test-%s", UUID.randomUUID()));
-        dslFiles.add(testResources);
+        Set<URI> dslFiles = Set.of(testResources);
         PolymorphicDslPhraseFilter phraseFilter = new DefaultPolymorphicDslPhraseFilter(
                 PdslFrameworkSpecificationParser.class,
                 PdslFrameworkSpecificationLexer.class
         );
-        try {
-            // Enable filtering
-            System.setProperty("pdsl.filterDuplicates", "true");
-            GherkinTestExecutor gherkinTestExecutor = new GherkinTestExecutor(phraseFilter);
-            // Act
-            TestRunResults results = gherkinTestExecutor.processFilesAndRunTests(dslFiles, new PdslFrameworkSpecificationImpl());
-            assertThat(results.failingTestTotal()).isEqualTo(0);
-            assertThat(results.totalFilteredDuplicateTests()).isEqualTo(1);
-        } finally {
-            System.setProperty("pdsl.filterDuplicates", "false");
-        }
+        // Enable filtering
+        System.setProperty("pdsl.filterDuplicates", "true");
+        GherkinTestExecutor gherkinTestExecutor = new GherkinTestExecutor(phraseFilter);
+        // Act
+        TestRunResults results = gherkinTestExecutor.processFilesAndRunTests(dslFiles, new PdslFrameworkSpecificationImpl());
+        assertThat(results.failingTestTotal()).isEqualTo(0);
+        assertThat(results.totalFilteredDuplicateTests()).isEqualTo(1);
+
     }
 }

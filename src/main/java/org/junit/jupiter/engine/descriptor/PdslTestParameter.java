@@ -92,8 +92,8 @@ public class PdslTestParameter {
         return excludesResources;
     }
 
-    public String getStartRule() {
-        return startRule;
+    public Optional<String> getStartRule() {
+        return Optional.ofNullable(startRule);
     }
 
     public Optional<String> getRecognizerRule() {

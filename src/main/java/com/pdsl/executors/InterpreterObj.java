@@ -2,7 +2,7 @@ package com.pdsl.executors;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-import com.pdsl.runners.PdslTestParams;
+
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -15,24 +15,36 @@ public final class InterpreterObj {
 
   private final Optional<Supplier<ParseTreeVisitor<?>>> parseTreeVisitor;
   private final Optional<Supplier<ParseTreeListener>> parseTreeListener;
-  private final String startRule;
+  private final Optional<String> startRule;
 
   public InterpreterObj(ParseTreeVisitor<?> parseTreeVisitor) {
     this.parseTreeVisitor = Optional.of(() -> parseTreeVisitor);
     this.parseTreeListener = Optional.empty();
-    this.startRule = PdslTestParams.DEFAULT_ALL_RULE;
+    this.startRule = Optional.empty();
+  }
+
+  /**
+   * Creates a InterpreterObj from the supplied parameter.
+   * <p>
+   * This will use the default start rule.
+   * The supplied parseTreeListener will be used as a singleton.
+   */
+  public InterpreterObj(ParseTreeListener parseTreeListener) {
+    this.parseTreeVisitor = Optional.empty();
+    this.parseTreeListener = Optional.of(() -> parseTreeListener);
+    this.startRule = Optional.empty();
   }
 
   /**
    * Creates a InterpreterObj from the supplied parameters.
-   *
+   * <p>
    * This will use the default start rule. If a specific start rule is needed use the related
    * method ofVisitor(supplier, String)}
    *
    * @return InterpreterObj
    */
   public static InterpreterObj ofVisitor(Supplier<ParseTreeVisitor<?>> supplier) {
-    return new InterpreterObj(supplier, PdslTestParams.DEFAULT_ALL_RULE);
+    return new InterpreterObj(supplier);
   }
 
   /**
@@ -49,8 +61,8 @@ public final class InterpreterObj {
    *
    * @return InterpreterObj
    */
-  public static InterpreterObj ofListener(Supplier<ParseTreeListener> supplier, String startRule) {
-    return new InterpreterObj(startRule, supplier);
+  public static InterpreterObj ofListener(Supplier<ParseTreeListener> listenerSupplier, String startRule) {
+    return new InterpreterObj(listenerSupplier, Optional.ofNullable(startRule));
   }
 
   /**
@@ -61,36 +73,29 @@ public final class InterpreterObj {
    *
    * @return InterpreterObj
    */
-  public static InterpreterObj ofListener(Supplier<ParseTreeListener> supplier) {
-    return new InterpreterObj(PdslTestParams.DEFAULT_ALL_RULE, supplier);
+  public static InterpreterObj ofListener(Supplier<ParseTreeListener> listenerSupplier) {
+    return new InterpreterObj(listenerSupplier, Optional.empty());
+  }
+
+  // Deal with type erasure by shuffling parameter order for listeners and visitors
+  private InterpreterObj(Supplier<ParseTreeVisitor<?>> parseTreeVisitorSupplier) {
+    this.parseTreeVisitor = Optional.of(parseTreeVisitorSupplier);
+    this.parseTreeListener = Optional.empty();
+    this.startRule = Optional.empty();
   }
 
   // Deal with type erasure by shuffling parameter order for listeners and visitors
   private InterpreterObj(Supplier<ParseTreeVisitor<?>> parseTreeVisitorSupplier, String startRule) {
     this.parseTreeVisitor = Optional.of(parseTreeVisitorSupplier);
     this.parseTreeListener = Optional.empty();
-    this.startRule = startRule;
+    this.startRule = Optional.of(startRule);
   }
+
   // Deal with type erasure by shuffling parameter order for listeners and visitors
-  private InterpreterObj(String startRule, Supplier<ParseTreeListener> parseTreeListenerSupplier) {
+  private InterpreterObj(Supplier<ParseTreeListener> parseTreeListenerSupplier, Optional<String> startRule) {
     this.parseTreeVisitor = Optional.empty();
     this.parseTreeListener = Optional.of(parseTreeListenerSupplier);
-    this.startRule = PdslTestParams.DEFAULT_ALL_RULE;
-  }
-
-
-  /**
-   * Creates a InterpreterObj from the supplied parameter.
-   *
-   * This will use the default start rule.
-   * The supplied parseTreeListener will be used as a singleton.
-   *
-   * @return InterpreterObj
-   */
-  public InterpreterObj(ParseTreeListener parseTreeListener) {
-    this.parseTreeVisitor = Optional.empty();
-    this.parseTreeListener = Optional.of(() -> parseTreeListener);
-    this.startRule = PdslTestParams.DEFAULT_ALL_RULE;
+    this.startRule = startRule;
   }
 
   /**
@@ -98,18 +103,16 @@ public final class InterpreterObj {
    *
    * This will use the supplied start rule.
    * The supplied parseTreeListener will be used as a singleton.
-   *
-   * @return InterpreterObj
    */
-  public InterpreterObj(ParseTreeListener parseTreeListener, String startRule) {
+  private InterpreterObj(ParseTreeListener parseTreeListener, String startRule) {
     this.parseTreeVisitor = Optional.empty();
     this.parseTreeListener = Optional.of(() -> parseTreeListener);
-    this.startRule = startRule;
+    this.startRule = Optional.of(startRule);
   }
 
   /**
    * Creates a InterpreterObj from the supplied parameter.
-   *
+   * <p>
    * This will use the supplied start rule.
    * The supplied parseTreeListener will be used as a singleton.
    *
@@ -118,7 +121,7 @@ public final class InterpreterObj {
   public InterpreterObj(ParseTreeVisitor<?> parseTreeVisitor, String startRule) {
     this.parseTreeVisitor = Optional.of(() -> parseTreeVisitor);
     this.parseTreeListener = Optional.empty();
-    this.startRule = startRule;
+    this.startRule = Optional.of(startRule);
   }
 
   public Optional<ParseTreeVisitor<?>> getParseTreeVisitor() {
@@ -129,7 +132,7 @@ public final class InterpreterObj {
     return parseTreeListener.map(Supplier::get);
   }
   
-  public String getStartRule(){
+  public Optional<String> getStartRule(){
     return this.startRule;
   }
 

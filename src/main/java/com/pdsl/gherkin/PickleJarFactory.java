@@ -6,7 +6,6 @@ import com.pdsl.gherkin.models.GherkinRule;
 import com.pdsl.gherkin.models.GherkinScenario;
 import com.pdsl.gherkin.models.GherkinStep;
 import com.pdsl.gherkin.models.GherkinString;
-import com.pdsl.reports.TestResult;
 import com.pdsl.transformers.PolymorphicDslFileException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -23,24 +23,42 @@ import java.util.stream.Collectors;
  */
 public class PickleJarFactory implements GherkinObservable {
 
-    public static final PickleJarFactory DEFAULT = new PickleJarFactory(new PdslGherkinInterpreterImpl(), new PdslGherkinListenerImpl(), StandardCharsets.UTF_8);
+    public static final PickleJarFactory DEFAULT = new PickleJarFactory(
+            new PdslGherkinInterpreterImpl(),
+            PdslGherkinListenerImpl::new,
+            StandardCharsets.UTF_8
+    );
     private final Charset charset;
     private final PdslGherkinRecognizer pdslGherkinRecognizer;
-    private final PdslGherkinListener listener;
+    private final Supplier<PdslGherkinListener> listenerSupplier;
     private List<GherkinObserver> observers = new ArrayList<>();
 
     public static PickleJarFactory getDefaultPickleJarFactory(){
-        return new PickleJarFactory(new PdslGherkinInterpreterImpl(), new PdslGherkinListenerImpl(), StandardCharsets.UTF_8);
+        return new PickleJarFactory(new PdslGherkinInterpreterImpl(), PdslGherkinListenerImpl::new, StandardCharsets.UTF_8);
     }
 
     public PickleJarFactory(PdslGherkinRecognizer pdslGherkinRecognizer, PdslGherkinListener gherkinListener, Charset charset) {
         this.pdslGherkinRecognizer = pdslGherkinRecognizer;
-        this.listener = gherkinListener;
+        this.listenerSupplier = () -> gherkinListener;
         this.charset = charset;
     }
+
+    public PickleJarFactory(PdslGherkinRecognizer pdslGherkinRecognizer, Supplier<PdslGherkinListener> listenerSupplier, Charset charset) {
+        this.pdslGherkinRecognizer = pdslGherkinRecognizer;
+        this.listenerSupplier = listenerSupplier;
+        this.charset = charset;
+    }
+
     public PickleJarFactory(PdslGherkinRecognizer pdslGherkinRecognizer, PdslGherkinListener gherkinListener, Charset charset, List<GherkinObserver> observers) {
         this.pdslGherkinRecognizer = pdslGherkinRecognizer;
-        this.listener = gherkinListener;
+        this.listenerSupplier = () -> gherkinListener;
+        this.charset = charset;
+        this.observers = observers;
+    }
+
+    public PickleJarFactory(PdslGherkinRecognizer pdslGherkinRecognizer, Supplier<PdslGherkinListener> listenerSupplier, Charset charset, List<GherkinObserver> observers) {
+        this.pdslGherkinRecognizer = pdslGherkinRecognizer;
+        this.listenerSupplier = listenerSupplier;
         this.charset = charset;
         this.observers = observers;
     }
@@ -49,7 +67,7 @@ public class PickleJarFactory implements GherkinObservable {
     /**
      * Converts a list of feature files into a list of {@code PickleJar}.
      * <p>
-     * The primary purpose of this is to both  read all of the feature files (and making sure they exist) and
+     * The primary purpose of this is to both read all the feature files (and making sure they exist) and
      * parameter substitutions on the text if needed
      *
      * @param testResources List of URIs to feature files
@@ -60,7 +78,7 @@ public class PickleJarFactory implements GherkinObservable {
         // Parse each gherkin file
         try {
             for (URI uri : testResources) {
-                features.add(pdslGherkinRecognizer.interpretGherkinFileStrictly(uri, listener));
+                features.add(pdslGherkinRecognizer.interpretGherkinFileStrictly(uri, listenerSupplier.get()));
             }
         } catch (IOException e) {
             throw new PolymorphicDslFileException("Could not open file!", e);
@@ -250,37 +268,35 @@ public class PickleJarFactory implements GherkinObservable {
             for (int i = 0; i < rawTag.length(); i++) {
                 char c = rawTag.charAt(i);
                 switch (c) {
-                    case ' ': /* fall through */
-                    case '\t': /* fall through */
-                    case '\n': /* fall through */
+                    case ' ', '\t', '\r', '\n' -> {
+                        /* fall through */
                         if (buildingTag) { // We encountered an @ earlier, otherwise we're skipping whitespace at the start of a string
                             tags.add(tagBuilder.toString(charset));
                             tagBuilder.reset();
                             buildingTag = false;
                         }
-                        break;
-                    case '#':
-                        if (!buildingTag) { // Comment at end of raw tag. Ignore the rest
-                            return tags;
-                        }
-                        tagBuilder.write(c);
-                        break;
-                    case '@':
+                        continue;
+                    }
+
+                    case '@' -> {
                         if (buildingTag) { //Joined tag (e.g, @tagOne@tagTwo
                             tags.add(tagBuilder.toString(charset));
                             tagBuilder.reset();
                         }
                         buildingTag = true;
-                        /* fall through */
-                    default:
-                        if (buildingTag) {
-                            tagBuilder.write(c);
-                        } else {
+                    }
+                    case '#' -> {
+                        if (!buildingTag) { // Comment at end of raw tag. Ignore the rest
+                            return tags;
+                        }
+                    }
+                    default -> {
+                        if (!buildingTag) {
                             throw new IllegalArgumentException("Illegal tags. Got confused by " + rawTag);
                         }
-                        buildingTag = true;
-                        break;
+                    }
                 }
+                tagBuilder.write(c);
             }
         }
         String remainingTag = tagBuilder.toString(charset);

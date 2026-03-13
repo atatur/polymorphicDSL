@@ -2,6 +2,7 @@ package com.pdsl.component;
 
 import com.pdsl.specifications.FileSystemTestResourceFinder;
 import com.pdsl.specifications.GlobPathMatcher;
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 
 import java.net.URI;
@@ -11,11 +12,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.io.Resources.getResource;
 import static com.google.common.truth.Truth.assertThat;
 
 public class TestResourceFinderComponent {
 
-    private final Path resourcesDirectory = Path.of(getClass().getClassLoader().getResource("test_resource_finder").getPath());
+    private final Path resourcesDirectory = FileUtils.getFile(getResource("test_resource_finder").getPath()).toPath();
 
     @Test
     public void resourceFinder_canRecursivelyMatchFiles() {

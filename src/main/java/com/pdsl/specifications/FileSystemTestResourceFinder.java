@@ -5,7 +5,6 @@ import com.pdsl.transformers.PolymorphicDslFileException;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
@@ -94,7 +93,7 @@ public class FileSystemTestResourceFinder implements TestResourceFinder {
             Collection<Path> matches = findMatchingFiles(sourceDirectory, pathMatcher);
             Collection<URI> resources = matches.stream()
                     .map(Path::toUri)
-                    .collect(Collectors.toList());
+                    .toList();
             return resources.isEmpty() ? Optional.empty() : Optional.of(resources);
         } catch (IOException e) {
             throw new PolymorphicDslFileException("Error searching for test resources!", e);

@@ -137,7 +137,7 @@ public abstract class PdslGeneralInvocationContextProvider implements Invocation
         if (pdslTestParameter.getRecognizedByLexer().isPresent() && pdslTestParameter.getRecognizedByParser().isPresent()) {
             return executorHelper.makeDefaultFilter(pdslTestParameter.getParser(), pdslTestParameter.getLexer(),
                     pdslTestParameter.getRecognizedByParser().get(), pdslTestParameter.getRecognizedByLexer().get(),
-                    pdslTestParameter.getStartRule(),
+                    pdslTestParameter.getStartRule().orElseThrow(()->new IllegalArgumentException("TODO")),
                     pdslTestParameter.getRecognizerRule().isPresent() ? pdslTestParameter.getRecognizerRule().get() : configParameter.getRecognizerRule()
                     );
         }
@@ -147,7 +147,7 @@ public abstract class PdslGeneralInvocationContextProvider implements Invocation
                 pdslTestParameter.getLexer(),
                 configParameter.getDslRecognizerParser().isPresent() ? configParameter.getDslRecognizerParser().get() : pdslTestParameter.getParser(),
                 configParameter.getDslRecognizerLexer().isPresent() ? configParameter.getDslRecognizerLexer().get() : pdslTestParameter.getLexer(),
-                pdslTestParameter.getStartRule(),
+                pdslTestParameter.getStartRule().orElseThrow(()->new IllegalArgumentException("TODO")),
                 pdslTestParameter.getRecognizerRule().isPresent() ? pdslTestParameter.getRecognizerRule().get() : configParameter.getRecognizerRule()
         );
         return phraseFilter;

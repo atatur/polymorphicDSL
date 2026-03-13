@@ -12,9 +12,11 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.engine.descriptor.*;
 
 import java.nio.file.Paths;
-import java.sql.SQLOutput;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static com.pdsl.interpreter.InterpreterOne.InterpreterOneListenerProvider;
+import static com.pdsl.interpreter.InterpreterTwo.InterpreterTwoListenerProvider;
 
 public class SharedTestCaseTest {
 
@@ -55,10 +57,9 @@ public class SharedTestCaseTest {
                                     new PdslTestParameter.Builder(
                                             List.of(
                                             new Interpreter(InterpreterOneLexer.class, InterpreterOneParser.class,
-                                                    new InterpreterObj(
-                                                            new InterpreterOne.InterpreterOneListenerProvider().get())),
+                                                    new InterpreterObj(new InterpreterOneListenerProvider().get())),
                                             new Interpreter(InterpreterTwoLexer.class, InterpreterTwoParser.class,
-                                                    new InterpreterObj(new InterpreterTwo.InterpreterTwoListenerProvider().get()))
+                                                    new InterpreterObj(new InterpreterTwoListenerProvider().get()))
                                             )
                                     )
                                             .withStartRule("polymorphicDslAllRules")
@@ -87,10 +88,9 @@ public class SharedTestCaseTest {
                             List.of(
                                     new PdslTestParameter.Builder(List.of(
                                             new Interpreter(InterpreterOneLexer.class, InterpreterOneParser.class,
-                                                    new InterpreterObj(
-                                                            new InterpreterOne.InterpreterOneListenerProvider().get())),
+                                                    new InterpreterObj(new InterpreterOneListenerProvider().get())),
                                             new Interpreter(InterpreterTwoLexer.class, InterpreterTwoParser.class,
-                                                    new InterpreterObj(new InterpreterTwo.InterpreterTwoListenerProvider().get()))
+                                                    new InterpreterObj(new InterpreterTwoListenerProvider().get()))
                                             )
                                     )
                                             .withStartRule("polymorphicDslAllRules")
@@ -118,8 +118,7 @@ public class SharedTestCaseTest {
                             List.of(
                                     new PdslTestParameter.Builder(List.of(
                                             new Interpreter(InterpreterOneLexer.class, InterpreterOneParser.class,
-                                                    new InterpreterObj(
-                                                            new InterpreterOne.InterpreterOneListenerProvider().get()))
+                                                    new InterpreterObj(new InterpreterOneListenerProvider().get()))
                                         )
                                     )
                                             .withStartRule("polymorphicDslAllRules")

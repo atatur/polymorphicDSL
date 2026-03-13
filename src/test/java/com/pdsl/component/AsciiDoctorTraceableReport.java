@@ -45,7 +45,7 @@ public class AsciiDoctorTraceableReport {
             .sourceHighlighter("rouge")
     ).safe(SafeMode.UNSAFE);
 
-    private static enum Context {
+    private enum Context {
         UNIT,
         COMPONENT,
         API,

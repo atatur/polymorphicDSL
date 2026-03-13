@@ -36,11 +36,12 @@ public class PdslTestTemplate {
         executable.execute();
     }
 
-    private static final Supplier<ParseTreeListener> parseTreeListenerSupplier = () -> new AllGrammarsParserBaseListener();
+    private static final Supplier<ParseTreeListener> parseTreeListenerSupplier = AllGrammarsParserBaseListener::new;
 
     private static class PdslExtension extends PdslGeneralInvocationContextProvider {
         private final Supplier<TestCaseFactory> testCaseFactorySupplier = () -> new PreorderTestCaseFactory.DefaultProvider().get();
-        private final Supplier<TestSpecificationFactoryGenerator> testSpecificationFactoryGeneratorSupplier = () -> new LineDelimitedTestSpecificationFactory.Generator();
+        private final Supplier<TestSpecificationFactoryGenerator> testSpecificationFactoryGeneratorSupplier
+                = LineDelimitedTestSpecificationFactory.Generator::new;
 
         @Override
         public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
@@ -69,7 +70,7 @@ public class PdslTestTemplate {
                     List.of(
                             new PdslTestParameter.Builder(
                                     PdslJavaTestRunnerLexer.class, PdslJavaTestRunnerParser.class, () -> INSTANCE)
-                                    .withIncludedResources(new String[] {"JavaTestRunner.feature", "JavaDeleteMe.feature"})
+                                    .withIncludedResources(new String[] {"JavaTestRunner.feature"})
                                     .build()
                             )
                     )
@@ -83,7 +84,7 @@ public class PdslTestTemplate {
     }
 
     static class JupiterFrameworkVisitor extends AbstractParseTreeVisitor<Void>  implements PdslJavaTestRunnerParserVisitor<Void> {
-        private static final Supplier<ParseTreeVisitor<?>> VISITOR_SUPPLIER = () -> new AllGrammarsParserBaseVisitor<>();
+        private static final Supplier<ParseTreeVisitor<?>> VISITOR_SUPPLIER = AllGrammarsParserBaseVisitor::new;
         private PdslTestParameter.Builder pdslTestBuilder;
         private PdslConfigParameter.Builder configBuilder;
         private final Set<ConfigParam> configParameters = new HashSet<>(); //We need to delay initialization of the configBuilder
@@ -98,30 +99,22 @@ public class PdslTestTemplate {
             GOOD_RECOGNIZER;
 
             private static ConfigParam create(String str) {
-                switch (str) {
-                    case "resourceRoot":
-                        return RESOURCE_ROOT;
-                    case "testRunExecutor":
-                        return TEST_RUN_EXECUTOR;
-                    case "resourceFinder":
-                        return RESOURCE_FINDER;
-                    case "dslRecognizerLexer":
-                    case "dslRecognizerParser":
-                        return GOOD_RECOGNIZER;
-                    case "recognizerRule":
-                        return RECOGNIZER_RULE;
-
-                    default:
-                        throw new IllegalArgumentException("Do not know of a value for " + str);
-                }
+                return switch (str) {
+                    case "resourceRoot" -> RESOURCE_ROOT;
+                    case "testRunExecutor" -> TEST_RUN_EXECUTOR;
+                    case "resourceFinder" -> RESOURCE_FINDER;
+                    case "dslRecognizerLexer", "dslRecognizerParser" -> GOOD_RECOGNIZER;
+                    case "recognizerRule" -> RECOGNIZER_RULE;
+                    default -> throw new IllegalArgumentException("Do not know of a value for " + str);
+                };
             }
         }
         public Void visitGivenPdslTest(PdslJavaTestRunnerParser.GivenPdslTestContext ctx) {
             configParameters.clear();
             configBuilder = PdslConfigParameter.createGherkinPdslConfig(
                             List.of(
-                                    new PdslTestParameter.Builder(
-                                            PdslJavaTestRunnerLexer.class, PdslJavaTestRunnerParser.class, () -> new AllGrammarsParserBaseVisitor<>())
+                                    new PdslTestParameter.Builder(PdslJavaTestRunnerLexer.class,
+                                            PdslJavaTestRunnerParser.class, AllGrammarsParserBaseVisitor::new)
                                             .withIncludedResources(new String[] {"JavaTestRunner.feature"})
                                             .build()
                             )

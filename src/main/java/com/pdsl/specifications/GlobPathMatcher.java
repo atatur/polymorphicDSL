@@ -7,23 +7,27 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class GlobPathMatcher implements PathMatcher {
 
-    private static final String GLOB = "glob:";
+    private static final String GLOB_PREFIX = "glob:";
     private final List<PathMatcher> includes;
     private final Optional<List<PathMatcher>> excludes;
 
+    private static String normalizeExpression(String expression) {
+        String normalized = expression;
+        return String.format("%s%s", GLOB_PREFIX, normalized);
+    }
+
     private static PathMatcher getMatcher(String expression) {
-        return FileSystems.getDefault().getPathMatcher(
-                expression.startsWith(GLOB) ? expression : String.format("%s%s", GLOB, expression));
+        return FileSystems.getDefault()
+                .getPathMatcher(expression.startsWith(GLOB_PREFIX) ? expression : GLOB_PREFIX + expression);
     }
 
     private static List<PathMatcher> getMatcher(List<String> expressions) {
         return expressions.stream()
                 .map(GlobPathMatcher::getMatcher)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     public GlobPathMatcher(String includes, String excludes) {
@@ -68,11 +72,10 @@ public class GlobPathMatcher implements PathMatcher {
 
     @Override
     public boolean matches(Path path) {
-        if (excludes.isPresent()) {
-            return includes.stream().anyMatch(matcher -> matcher.matches(path))
-                    && excludes.get().stream().noneMatch(matcher -> matcher.matches(path));
-        } else {
-            return includes.stream().anyMatch(matcher -> matcher.matches(path));
-        }
+        Path normalizedPath = (path.isAbsolute() ? path : path.toAbsolutePath()).normalize();
+        return excludes.map(pathMatchers -> includes.stream().anyMatch(matcher -> matcher.matches(normalizedPath))
+                && pathMatchers.stream().noneMatch(matcher -> matcher.matches(normalizedPath)))
+                .orElseGet(() -> includes.stream().anyMatch(matcher -> matcher.matches(normalizedPath)));
     }
+
 }
