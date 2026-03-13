@@ -149,16 +149,16 @@ public class DefaultPolymorphicDslPhraseFilter
                 Optional<Parser> parser = subgrammarParserOf(new ByteArrayInputStream(bais.readAllBytes()));
                 if (parser.isPresent()) {
                     parser.get().setBuildParseTree(true); // A parse tree creates a child object, causing the tree walker to traverse the rule twice
-                    ParseTree parseTree = subgrammarParseTreeOf(parser.get());
+                    ParseDTO parseDTO = subgrammarParseTreeOf(parser.get());
                     filteredPhrases.add(new FilteredPhrase() {
                         @Override
                         public String getPhrase() {
-                            return parseTree.getText();
+                            return parseDTO.parseTree.getText();
                         }
 
                         @Override
                         public Optional<ParseTree> getParseTree() {
-                            return Optional.of(parseTree);
+                            return parseDTO.isError() ? Optional.empty() : Optional.of(parseDTO.parseTree);
                         }
                     });
                 } else {
@@ -248,13 +248,19 @@ public class DefaultPolymorphicDslPhraseFilter
         }
     }
 
-    private ParseTree subgrammarParseTreeOf(Parser parser) {
+    private ParseDTO subgrammarParseTreeOf(Parser parser) {
+        PdslErrorListener errorListener = new PdslErrorListener();
         try {
             // Remove error messages. These are provided in check grammar.
             parser.removeErrorListeners();
-            return (ParseTree) subgrammarActivePhraseRule.invoke(parser, null);
+            parser.addErrorListener(errorListener);
+            return new ParseDTO((ParseTree) subgrammarActivePhraseRule.invoke(parser, null),
+                    errorListener.isErrorFound()) ;
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new PolymorphicDslTransformationException("Could not make parse tree from phrase!", e);
         }
     }
+
+    private record ParseDTO(ParseTree parseTree, Boolean isError) {}
+
 }
