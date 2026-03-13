@@ -86,7 +86,7 @@ public class InterpreterObjStartRuleTest {
     @Test
     public void testConstructorWithListenerAndStartRule() {
         ParseTreeListener listener = new AllGrammarsParserBaseListener();
-        InterpreterObj interpreterObj = new InterpreterObj(listener, "listenerConstructorRule");
+        InterpreterObj interpreterObj = InterpreterObj.ofListener(()-> listener, "listenerConstructorRule");
 
         Assertions.assertTrue(interpreterObj.getStartRule().isPresent());
         Assertions.assertEquals("listenerConstructorRule", interpreterObj.getStartRule().get());
