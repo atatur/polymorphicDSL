@@ -115,8 +115,6 @@ public final class InterpreterObj {
    * <p>
    * This will use the supplied start rule.
    * The supplied parseTreeListener will be used as a singleton.
-   *
-   * @return InterpreterObj
    */
   public InterpreterObj(ParseTreeVisitor<?> parseTreeVisitor, String startRule) {
     this.parseTreeVisitor = Optional.of(() -> parseTreeVisitor);
