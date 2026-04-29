@@ -23,7 +23,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class VisitorRuleTest {
+public class VisitorModeTest {
 
     public static class VisitorA extends AbstractParseTreeVisitor<Void> {
         public Void visitSomething() { return null; }
@@ -62,7 +62,7 @@ public class VisitorRuleTest {
                 List.of(), new String[]{"*.feature"}, new String[]{}
         );
 
-        when(recognizerParams.visitorRule()).thenReturn(VisitorRule.NO_DUPLICATES_RULE);
+        when(recognizerParams.visitorMode()).thenReturn(VisitorMode.NO_DUPLICATES_MODE);
         when(recognizerParams.pdslTestParams()).thenReturn(List.of(pdslTestParams));
 
         // We need enough mock data to get past the initial checks in recognizerParamsOperation
@@ -119,7 +119,7 @@ public class VisitorRuleTest {
                 List.of(), new String[]{"*.feature"}, new String[]{}
         );
 
-        when(recognizerParams.visitorRule()).thenReturn(VisitorRule.NO_DUPLICATES_RULE);
+        when(recognizerParams.visitorMode()).thenReturn(VisitorMode.NO_DUPLICATES_MODE);
         when(recognizerParams.pdslTestParams()).thenReturn(List.of(pdslTestParams));
 
         // We need enough mock data to get past the initial checks in recognizerParamsOperation
@@ -173,7 +173,7 @@ public class VisitorRuleTest {
                 List.of(), new String[]{"*.feature"}, new String[]{}
         );
 
-        when(recognizerParams.visitorRule()).thenReturn(VisitorRule.DEFAULT_RULE);
+        when(recognizerParams.visitorMode()).thenReturn(VisitorMode.DEFAULT_MODE);
         when(recognizerParams.pdslTestParams()).thenReturn(List.of(pdslTestParams));
 
         // We need enough mock data to get past the initial checks in recognizerParamsOperation

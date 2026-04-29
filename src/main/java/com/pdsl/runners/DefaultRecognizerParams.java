@@ -1,12 +1,9 @@
 package com.pdsl.runners;
 
-import com.pdsl.specifications.TestResourceFinderGenerator;
-import com.pdsl.testcases.TestCaseFactory;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * A DTO that holds data needed to run a full PDSL test suite.
@@ -31,5 +28,5 @@ public record DefaultRecognizerParams(
         Class<? extends Lexer> defaultLexerRecognizer,
         Class<? extends Parser> defaultParserRecognizer,
         PdslSuppliers providers,
-        VisitorRule visitorRule
+        VisitorMode visitorMode
 ) implements RecognizerParams {}

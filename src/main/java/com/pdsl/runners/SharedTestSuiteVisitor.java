@@ -42,7 +42,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         Preconditions.checkNotNull(recognizerParams.providers().resourceFinderSupplier(), "DSL resource finder cannot be null");
         Preconditions.checkNotNull(recognizerParams.providers().specificationFactoryProvider(), "Specification Factory Provider cannot be null");
         Preconditions.checkNotNull(recognizerParams.providers().testCaseFactoryProvider(), "Test Factory Provider cannot be null");
-        Preconditions.checkNotNull(recognizerParams.visitorRule(), "Visitor rule cannot be null");
+        Preconditions.checkNotNull(recognizerParams.visitorMode(), "Visitor mode cannot be null");
         recognizerParams.pdslTestParams().forEach(interpreter -> Preconditions.checkNotNull(interpreter, "No null objects can be in the interpreter array!"));
         // Create a Shared Test Suite
         List<List<TestCase>> testCasesPerInterpreters = new ArrayList<>();
@@ -80,13 +80,24 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
                 interpreterObjs.add(parser.interpreterProvider().get());
             }
         }
-        if (recognizerParams.visitorRule() == VisitorRule.NO_DUPLICATES_RULE) {
+        if (recognizerParams.visitorMode() == VisitorMode.NO_DUPLICATES_MODE) {
             checkForDuplicateTestCases(testCasesPerInterpreters);
         }
         return SharedTestSuite.of(testCasesPerInterpreters, interpreterObjs);
 
     }
 
+    /**
+     * Checks for duplicate phrases across different interpreters.
+     *
+     * <p>This method ensures that no phrase appears in test cases belonging to different interpreters.
+     * It iterates through each list of test cases (one list per interpreter) and tracks the phrases seen
+     * across all interpreters. If a phrase is encountered that has already been seen in a previous
+     * interpreter's test cases, a {@link DuplicateVisitorMethodsException} is thrown.</p>
+     *
+     * @param testCasesPerInterpreters A list of lists, where each inner list contains {@link TestCase}s for a specific interpreter.
+     * @throws DuplicateVisitorMethodsException if a duplicate phrase is found between different interpreters.
+     */
     private void checkForDuplicateTestCases(List<List<TestCase>> testCasesPerInterpreters) {
         Set<String> globallySeenPhrases = new HashSet<>();
         for (List<TestCase> testCasesFromOneInterpreter : testCasesPerInterpreters) {
