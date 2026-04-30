@@ -5,7 +5,7 @@ import com.pdsl.runners.PdslConfiguration;
 import com.pdsl.runners.PdslGherkinApplication;
 import com.pdsl.runners.RecognizedBy;
 import com.pdsl.runners.TestSpecificationFactoryGenerator;
-import com.pdsl.runners.VisitorMode;
+import com.pdsl.runners.InterpreterConstraint;
 import com.pdsl.specifications.TestResourceFinderGenerator;
 import com.pdsl.testcases.TestCaseFactory;
 import org.antlr.v4.runtime.Lexer;
@@ -61,8 +61,8 @@ class PdslGherkinHelperAnnotation implements Annotation, PdslConfiguration {
     }
 
     @Override
-    public VisitorMode visitorMode() {
-        return annotation.visitorMode();
+    public InterpreterConstraint interpreterConstraint() {
+        return annotation.interpreterConstraint();
     }
 
     @Override

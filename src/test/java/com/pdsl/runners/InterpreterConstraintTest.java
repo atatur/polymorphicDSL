@@ -23,7 +23,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class VisitorModeTest {
+public class InterpreterConstraintTest {
 
     public static class VisitorA extends AbstractParseTreeVisitor<Void> {
         public Void visitSomething() { return null; }
@@ -62,7 +62,7 @@ public class VisitorModeTest {
                 List.of(), new String[]{"*.feature"}, new String[]{}
         );
 
-        when(recognizerParams.visitorMode()).thenReturn(VisitorMode.NO_DUPLICATES_MODE);
+        when(recognizerParams.interpreterConstraint()).thenReturn(InterpreterConstraint.NO_DUPLICATES_PHRASES);
         when(recognizerParams.pdslTestParams()).thenReturn(List.of(pdslTestParams));
 
         // We need enough mock data to get past the initial checks in recognizerParamsOperation
@@ -119,7 +119,7 @@ public class VisitorModeTest {
                 List.of(), new String[]{"*.feature"}, new String[]{}
         );
 
-        when(recognizerParams.visitorMode()).thenReturn(VisitorMode.NO_DUPLICATES_MODE);
+        when(recognizerParams.interpreterConstraint()).thenReturn(InterpreterConstraint.NO_DUPLICATES_PHRASES);
         when(recognizerParams.pdslTestParams()).thenReturn(List.of(pdslTestParams));
 
         // We need enough mock data to get past the initial checks in recognizerParamsOperation
@@ -173,7 +173,7 @@ public class VisitorModeTest {
                 List.of(), new String[]{"*.feature"}, new String[]{}
         );
 
-        when(recognizerParams.visitorMode()).thenReturn(VisitorMode.DEFAULT_MODE);
+        when(recognizerParams.interpreterConstraint()).thenReturn(InterpreterConstraint.NONE);
         when(recognizerParams.pdslTestParams()).thenReturn(List.of(pdslTestParams));
 
         // We need enough mock data to get past the initial checks in recognizerParamsOperation

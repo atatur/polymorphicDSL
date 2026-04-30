@@ -42,7 +42,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         Preconditions.checkNotNull(recognizerParams.providers().resourceFinderSupplier(), "DSL resource finder cannot be null");
         Preconditions.checkNotNull(recognizerParams.providers().specificationFactoryProvider(), "Specification Factory Provider cannot be null");
         Preconditions.checkNotNull(recognizerParams.providers().testCaseFactoryProvider(), "Test Factory Provider cannot be null");
-        Preconditions.checkNotNull(recognizerParams.visitorMode(), "Visitor mode cannot be null");
+        Preconditions.checkNotNull(recognizerParams.interpreterConstraint(), "Visitor mode cannot be null");
         recognizerParams.pdslTestParams().forEach(interpreter -> Preconditions.checkNotNull(interpreter, "No null objects can be in the interpreter array!"));
         // Create a Shared Test Suite
         List<List<TestCase>> testCasesPerInterpreters = new ArrayList<>();
@@ -80,7 +80,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
                 interpreterObjs.add(parser.interpreterProvider().get());
             }
         }
-        if (recognizerParams.visitorMode() == VisitorMode.NO_DUPLICATES_MODE) {
+        if (recognizerParams.interpreterConstraint() == InterpreterConstraint.NO_DUPLICATES_PHRASES) {
             checkForDuplicateTestCases(testCasesPerInterpreters);
         }
         return SharedTestSuite.of(testCasesPerInterpreters, interpreterObjs);

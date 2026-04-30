@@ -22,5 +22,5 @@ public @interface PdslGherkinApplication {
     String recognizerRule() default RecognizedBy.DEFAULT_RECOGNIZER_RULE_NAME;
     Class<? extends Provider<? extends TraceableTestRunExecutor>> testRunExecutor() default EmptyTestExecutorProvider.class;
     Class<? extends Provider<? extends TestResourceFinderGenerator>> resourceFinder() default EmptyTestResourceFinder.class;
-    VisitorMode visitorMode() default VisitorMode.DEFAULT_MODE;
+    InterpreterConstraint interpreterConstraint() default InterpreterConstraint.NONE;
 }

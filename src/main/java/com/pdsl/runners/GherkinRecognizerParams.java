@@ -28,5 +28,5 @@ public record GherkinRecognizerParams (
         Class<? extends Lexer> defaultLexerRecognizer,
         Class<? extends Parser> defaultParserRecognizer,
         PdslSuppliers providers,
-        VisitorMode visitorMode
+        InterpreterConstraint interpreterConstraint
 ) implements RecognizerParams {}
