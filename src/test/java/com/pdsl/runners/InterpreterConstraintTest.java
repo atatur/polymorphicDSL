@@ -1,6 +1,6 @@
 package com.pdsl.runners;
 
-import com.pdsl.exceptions.DuplicateVisitorMethodsException;
+import com.pdsl.exceptions.InterpreterDuplicatePhrasesException;
 import com.pdsl.executors.InterpreterObj;
 import com.pdsl.grammars.DialectLexer;
 import com.pdsl.grammars.DialectParser;
@@ -33,7 +33,7 @@ public class InterpreterConstraintTest {
         public Void visitSomething() { return null; }
     }
 
-    @Test(expected = DuplicateVisitorMethodsException.class)
+    @Test(expected = InterpreterDuplicatePhrasesException.class)
     public void noDuplicatesRule_duplicateLinesAcrossInterpreters_throwsException() {
         SharedTestSuiteVisitor sharedTestSuiteVisitor = new SharedTestSuiteVisitor();
         RecognizerParams recognizerParams = mock(RecognizerParams.class);
