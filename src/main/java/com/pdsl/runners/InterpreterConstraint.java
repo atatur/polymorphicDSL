@@ -10,6 +10,6 @@ package com.pdsl.runners;
 */
 public enum InterpreterConstraint {
 
-    NONE,  // If a phrase is recognized by 1 or more interpreter they all run it (material implication)
+    NONE,  // Phrases are run by any interpreter that recognize it (material implication)
     NO_DUPLICATES_PHRASES // Each phrase can be recognized by 0 or 1 among all the interpreters (mutual exclusion)
 }
