@@ -6,9 +6,7 @@ import com.pdsl.executors.TraceableTestRunExecutor;
 import com.pdsl.gherkin.DefaultGherkinTestSpecificationFactory;
 import com.pdsl.runners.*;
 import com.pdsl.specifications.FileSystemTestResourceGenerator;
-import com.pdsl.specifications.LineDelimitedTestSpecificationFactory;
 import com.pdsl.specifications.TestResourceFinderGenerator;
-import com.pdsl.specifications.TestSpecificationFactory;
 import com.pdsl.testcases.PreorderTestCaseFactory;
 import com.pdsl.testcases.TestCaseFactory;
 
@@ -36,6 +34,7 @@ public class PdslConfigParameter {
     private Optional<Supplier<? extends TraceableTestRunExecutor>> testRunExecutor = Optional.empty();
     private Optional<Supplier<? extends TestResourceFinderGenerator>> resourceFinder = Optional.empty();
     private String recognizerRule = RecognizedBy.DEFAULT_RECOGNIZER_RULE_NAME;
+    private InterpreterConstraint interpreterConstraint = InterpreterConstraint.NONE;
     private final Supplier<? extends TestSpecificationFactoryGenerator> specificationFactoryProvider;
     private final Supplier<? extends TestCaseFactory> testCaseFactoryProvider;
     private final Collection<PdslTestParameter> pdslTestParameters;
@@ -51,6 +50,7 @@ public class PdslConfigParameter {
         this.testRunExecutor = builder.testRunExecutor;
         this.resourceFinder = builder.resourceFinder;
         this.recognizerRule = builder.recognizerRule;
+        this.interpreterConstraint = builder.interpreterConstraint;
         this.specificationFactoryProvider = builder.specificationFactoryProvider;
         this.testCaseFactoryProvider = builder.testCaseFactoryProvider;
         this.pdslTestParameters = builder.pdslTestParameters;
@@ -86,6 +86,10 @@ public class PdslConfigParameter {
 
     public String getRecognizerRule() {
         return recognizerRule;
+    }
+
+    public InterpreterConstraint getInterpreterConstraint() {
+        return interpreterConstraint;
     }
 
     public Supplier<? extends TestSpecificationFactoryGenerator> getSpecificationFactoryProvider() {
@@ -140,6 +144,7 @@ public class PdslConfigParameter {
         private Optional<Supplier<? extends TraceableTestRunExecutor>> testRunExecutor = Optional.empty();
         private Optional<Supplier<? extends TestResourceFinderGenerator>> resourceFinder = Optional.empty();
         private String recognizerRule = RecognizedBy.DEFAULT_RECOGNIZER_RULE_NAME;
+        private InterpreterConstraint interpreterConstraint = InterpreterConstraint.NONE;
         private Supplier<? extends TestSpecificationFactoryGenerator> specificationFactoryProvider;
         private Supplier<? extends TestCaseFactory> testCaseFactoryProvider;
         private Collection<PdslTestParameter> pdslTestParameters;
@@ -222,6 +227,12 @@ public class PdslConfigParameter {
             return this;
         }
 
+        public Builder withInterpreterConstraint(InterpreterConstraint interpreterConstraint) {
+            Preconditions.checkNotNull(interpreterConstraint, "Interpreter Constraint cannot be null!");
+            this.interpreterConstraint = interpreterConstraint;
+            return this;
+        }
+
         public Builder withPdslTestParameters(Collection<PdslTestParameter> pdslTestParameters) {
             Preconditions.checkNotNull(pdslTestParameters, "PDSL test parameters cannot be null!");
             Preconditions.checkArgument(!pdslTestParameters.isEmpty(), "PDSL test parameters cannot be empty!");
@@ -278,7 +289,8 @@ public class PdslConfigParameter {
                             parameter.getSpecificationFactoryProvider(),
                             parameter.getTestCaseFactoryProvider()
 
-                    )
+                    ),
+                    parameter.getInterpreterConstraint()
             );
         else
             return new DefaultRecognizerParams(
@@ -294,7 +306,8 @@ public class PdslConfigParameter {
                         parameter.getSpecificationFactoryProvider(),
                         parameter.getTestCaseFactoryProvider()
 
-                )
+                ),
+                parameter.getInterpreterConstraint()
         );
     }
 

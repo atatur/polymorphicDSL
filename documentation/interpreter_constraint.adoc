@@ -1,0 +1,49 @@
+= Interpreter Constraints
+
+In PDSL, when using shared test cases processed by multiple interpreters, you can use `InterpreterConstraint` to define the behavior regarding phrase recognition.
+
+By default, if a phrase is recognized by an interpreter, that interpreter will process it. However, in complex projects, you might want to enforce stricter rules to prevent unexpected behavior.
+
+== InterpreterConstraint.NONE (Default)
+
+When the constraint is set to `NONE`, if a phrase is recognized by one or more interpreters, all of them will process it. This is the default behavior.
+
+=== Behavior
+* Material implication: If recognized, it runs.
+* Multiple interpreters can execute the same phrase if they all recognize it.
+
+=== Example
+Assume we have two interpreters, `Interpreter A` and `Interpreter B`, both capable of recognizing the phrase `"Shared line"`.
+
+In a feature file:
+[source,gherkin]
+----
+Given Shared line
+----
+
+With `InterpreterConstraint.NONE`:
+* `Interpreter A` recognizes `"Shared line"` and executes it.
+* `Interpreter B` recognizes `"Shared line"` and executes it.
+Both interpreters will run the step.
+
+== InterpreterConstraint.NO_DUPLICATES_PHRASES
+
+When the constraint is set to `NO_DUPLICATES_PHRASES`, each phrase can be recognized by at most one interpreter among all the interpreters used in the test.
+
+=== Behavior
+* Mutual exclusion: A phrase belongs to at most one interpreter.
+* If a phrase is recognized by more than one interpreter, an `InterpreterDuplicatePhrasesException` is thrown.
+
+=== Example
+Assume we have two interpreters, `Interpreter A` and `Interpreter B`.
+
+In a feature file:
+[source,gherkin]
+----
+Given Shared line
+----
+
+If both `Interpreter A` and `Interpreter B` are configured to recognize `"Shared line"`, setting `InterpreterConstraint.NO_DUPLICATES_PHRASES` will result in:
+* An `InterpreterDuplicatePhrasesException` being thrown during test setup/verification.
+
+This ensures that there is no ambiguity or unintentional duplication of work across different interpreters for the same phrase.

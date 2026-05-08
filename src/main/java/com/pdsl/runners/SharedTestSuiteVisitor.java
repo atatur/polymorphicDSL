@@ -14,17 +14,17 @@ import com.pdsl.testcases.TestCase;
 import com.pdsl.testcases.TestCaseFactory;
 import com.pdsl.transformers.DefaultPolymorphicDslPhraseFilter;
 import com.pdsl.transformers.PolymorphicDslPhraseFilter;
+import com.pdsl.exceptions.InterpreterDuplicatePhrasesException;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A visitor for producing PDSL test cases that can have more than one parser and listener/visitor process it.
- *
+ * <p>
  * This visitor represents the default behavior for PDSL implementations seen in other test frameworks (e.g. JUnit).
  * It is highly suitable for embedding in other frameworks to have consistent logic and to get the benefits of new
  * features and enhancements to PDSL in general to 3rd party implementers.
@@ -42,6 +42,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         Preconditions.checkNotNull(recognizerParams.providers().resourceFinderSupplier(), "DSL resource finder cannot be null");
         Preconditions.checkNotNull(recognizerParams.providers().specificationFactoryProvider(), "Specification Factory Provider cannot be null");
         Preconditions.checkNotNull(recognizerParams.providers().testCaseFactoryProvider(), "Test Factory Provider cannot be null");
+        Preconditions.checkNotNull(recognizerParams.interpreterConstraint(), "Visitor mode cannot be null");
         recognizerParams.pdslTestParams().forEach(interpreter -> Preconditions.checkNotNull(interpreter, "No null objects can be in the interpreter array!"));
         // Create a Shared Test Suite
         List<List<TestCase>> testCasesPerInterpreters = new ArrayList<>();
@@ -79,12 +80,44 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
                 interpreterObjs.add(parser.interpreterProvider().get());
             }
         }
+        // Check for duplicate phrases for each interpreter in a case 'NO_DUPLICATES_PHRASES' interpreter constraint
+        if (recognizerParams.interpreterConstraint() == InterpreterConstraint.NO_DUPLICATES_PHRASES) {
+            checkForDuplicateTestCases(testCasesPerInterpreters);
+        }
         return SharedTestSuite.of(testCasesPerInterpreters, interpreterObjs);
 
     }
 
+    /**
+     * Checks for duplicate phrases across different interpreters.
+     *
+     * <p>This method ensures that no phrase appears in test cases belonging to different interpreters.
+     * It iterates through each list of test cases (one list per interpreter) and tracks the phrases seen
+     * across all interpreters. If a phrase is encountered that has already been seen in a previous
+     * interpreter's test cases, a {@link InterpreterDuplicatePhrasesException} is thrown.</p>
+     *
+     * @param testCasesPerInterpreters A list of lists, where each inner list contains {@link TestCase}s for a specific interpreter.
+     * @throws InterpreterDuplicatePhrasesException if a duplicate phrase is found between different interpreters.
+     */
+    private void checkForDuplicateTestCases(List<List<TestCase>> testCasesPerInterpreters) {
+        Set<String> globallySeenPhrases = new HashSet<>();
+        for (List<TestCase> testCasesFromOneInterpreter : testCasesPerInterpreters) {
+            Set<String> phrasesFromCurrentInterpreter = new HashSet<>();
+            for (TestCase testCase : testCasesFromOneInterpreter) {
+                for (String phrase : testCase.getContextFilteredPhraseBody()) {
+                    if (globallySeenPhrases.contains(phrase)) {
+                        throw new InterpreterDuplicatePhrasesException(String.format("Interpreter constraint set to NO_DUPLICATES_PHRASES. Duplicate phrases found between different interpreters: %s", phrase));
+                    }
+                    phrasesFromCurrentInterpreter.add(phrase);
+                }
+            }
+            globallySeenPhrases.addAll(phrasesFromCurrentInterpreter);
+        }
+    }
+
+
     private Set<URI> getTestResources(TestResourceFinderGenerator finderGenerator, String[] includes, String[] excludes, URI resourceRoot) {
-        TestResourceFinder finder = finderGenerator.get(includes,excludes);
+        TestResourceFinder finder = finderGenerator.get(includes, excludes);
         Set<URI> testResources = new HashSet<>();
         // Find the files we will be testing
         Optional<Collection<URI>> resources = finder.scanForTestResources(resourceRoot);
@@ -97,7 +130,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         return testResources;
     }
 
-    private Collection<TestSpecification> getSpecifications(InterpreterParam parser, RecognizerParams recognizerParams, PdslTestParams pdslTestParams,  Set<URI> testResources) {
+    private Collection<TestSpecification> getSpecifications(InterpreterParam parser, RecognizerParams recognizerParams, PdslTestParams pdslTestParams, Set<URI> testResources) {
         PolymorphicDslPhraseFilter polymorphicDslPhraseFilter = new DefaultPolymorphicDslPhraseFilter(
                 parser.parser(), parser.lexer(),
                 getRecognizerParser(pdslTestParams, parser, recognizerParams),
@@ -118,13 +151,13 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
             tags = String.join(String.format("\t%n"), parser.tags());
         }
         throw new IllegalArgumentException(String.format("""
-                        No tests were found at the provided URIs. 
-                        Check the URIs and tags (which may have been used for filtering!
-                            Parser: %s,
-                            Lexer: %s,
-                            Tag Filters: 
-                               %s
-                        """.stripIndent(), parser.parser(), parser.lexer(), tags));
+                No tests were found at the provided URIs. 
+                Check the URIs and tags (which may have been used for filtering!
+                    Parser: %s,
+                    Lexer: %s,
+                    Tag Filters: 
+                       %s
+                """.stripIndent(), parser.parser(), parser.lexer(), tags));
     }
 
     private Collection<TestCase> getTestCases(TestCaseFactory testCaseFactory, Collection<TestSpecification> specifications) {
@@ -141,51 +174,51 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
 
     /**
      * Create the parser for a recognizer from the provided objects.
-     *
+     * <p>
      * If a PdslTestParams provides a recognizer it will be used. If not, if the RecognizerParamas provides one
      * it will be used. Otherwise the same parser used by the PdslTestParams for executing phrases will double as a
      * recognizer.
-     *
+     * <p>
      * The important business logic guaranteed by this is that EVERY phrase must be recognized by something, even if
      * it doesn't trigger any work when recognized.
-     *
+     * <p>
      * The recognizer will ignore sentences and is there to provide guarantees that there were no typos made in the
      * DSL tests before they execute. The interpreter is what triggers some behavior when a sentence is parsed. If no
      * recognizer is provided then the interpreter will double as a recognizer (i.e, the framework will throw an
      * exception if the interpreter doesn't recognizer a sentence because nothing else could either).
      *
-     * @param params the information needed for a specific test that needs a recognizer
+     * @param params           the information needed for a specific test that needs a recognizer
      * @param parser
      * @param recognizerParams
      * @return the class of the parser to use in a test specification factory
      */
     public static Class<? extends Parser> getRecognizerParser(PdslTestParams params, InterpreterParam parser,
-                                                                    RecognizerParams recognizerParams) {
+                                                              RecognizerParams recognizerParams) {
         if (!params.parserRecognizerClass().equals(EmptyRecognizerParser.class)) {
             return params.parserRecognizerClass();
         }
-        if(!recognizerParams.defaultParserRecognizer().equals(EmptyRecognizerParser.class)) {
-          return recognizerParams.defaultParserRecognizer();
+        if (!recognizerParams.defaultParserRecognizer().equals(EmptyRecognizerParser.class)) {
+            return recognizerParams.defaultParserRecognizer();
         }
         return parser.parser();
     }
 
     /**
      * Create the lexer for a recognizer from the provided objects.
-     *
+     * <p>
      * If a PdslTestParams provides a recognizer it will be used. If not, if the RecognizerParamas provides one
      * it will be used. Otherwise the same parser used by the PdslTestParams for executing phrases will double as a
      * recognizer.
-     *
+     * <p>
      * The important business logic guaranteed by this is that EVERY phrase must be recognized by something, even if
      * it doesn't trigger any work when recognized.
-     *
+     * <p>
      * The recognizer will ignore sentences and is there to provide guarantees that there were no typos made in the
      * DSL tests before they execute. The interpreter is what triggers some behavior when a sentence is parsed. If no
      * recognizer is provided then the interpreter will double as a recognizer (i.e, the framework will throw an
      * exception if the interpreter doesn't recognizer a sentence because nothing else could either).
      *
-     * @param params the information needed for a specific test that needs a recognizer
+     * @param params           the information needed for a specific test that needs a recognizer
      * @param parser
      * @param recognizerParams
      * @return the class of the parser to use in a test specification factory
@@ -195,7 +228,7 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         if (!params.lexerRecognizerClass().equals(EmptyRecognizerLexer.class)) {
             return params.lexerRecognizerClass();
         }
-        if(!recognizerParams.defaultLexerRecognizer().equals(EmptyRecognizerLexer.class)) {
+        if (!recognizerParams.defaultLexerRecognizer().equals(EmptyRecognizerLexer.class)) {
             return recognizerParams.defaultLexerRecognizer();
         }
         return parser.lexer();

@@ -16,6 +16,7 @@ public interface RecognizerParams{
     Class<? extends Lexer> defaultLexerRecognizer();
     Class<? extends Parser> defaultParserRecognizer();
     DefaultRecognizerParams.PdslSuppliers providers();
+    InterpreterConstraint interpreterConstraint();
 
     /**
      * An operation enabling the visitor pattern for the RecognizerParams class.
