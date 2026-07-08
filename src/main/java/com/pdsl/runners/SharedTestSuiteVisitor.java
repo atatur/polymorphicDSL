@@ -45,11 +45,11 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
         Preconditions.checkNotNull(recognizerParams.interpreterConstraint(), "Visitor mode cannot be null");
         recognizerParams.pdslTestParams().forEach(interpreter -> Preconditions.checkNotNull(interpreter, "No null objects can be in the interpreter array!"));
         // Create a Shared Test Suite
-        List<List<TestCase>> testCasesPerInterpreters = new ArrayList<>();
-        List<InterpreterObj> interpreterObjs = new ArrayList<>();
+        List<SharedTestSuite.SharedTestCaseData> testCaseSharedDataList = new ArrayList<>();
 
         for (PdslTestParams params : recognizerParams.pdslTestParams()) {
-
+            List<List<TestCase>> testCasesPerInterpreters = new ArrayList<>();
+            List<InterpreterObj> interpreterObjs = new ArrayList<>();
             // Get the tests written in a DSL
             Set<URI> testResources;
             try {
@@ -79,12 +79,13 @@ public class SharedTestSuiteVisitor implements RecognizerParams.RecognizerParams
                 testCasesPerInterpreters.add(testCasesForSingleInterpreter);
                 interpreterObjs.add(parser.interpreterProvider().get());
             }
+            // Check for duplicate phrases for each interpreter in a case 'NO_DUPLICATES_PHRASES' interpreter constraint
+            if (recognizerParams.interpreterConstraint() == InterpreterConstraint.NO_DUPLICATES_PHRASES) {
+                checkForDuplicateTestCases(testCasesPerInterpreters);
+            }
+            testCaseSharedDataList.add(new SharedTestSuite.SharedTestCaseData(testCasesPerInterpreters, interpreterObjs));
         }
-        // Check for duplicate phrases for each interpreter in a case 'NO_DUPLICATES_PHRASES' interpreter constraint
-        if (recognizerParams.interpreterConstraint() == InterpreterConstraint.NO_DUPLICATES_PHRASES) {
-            checkForDuplicateTestCases(testCasesPerInterpreters);
-        }
-        return SharedTestSuite.of(testCasesPerInterpreters, interpreterObjs);
+        return SharedTestSuite.of(testCaseSharedDataList);
 
     }
 
