@@ -1,20 +1,33 @@
 package com.pdsl.gherkin;
 
 import com.pdsl.gherkin.models.*;
+import com.pdsl.gherkin.parser.GherkinLexer;
 import com.pdsl.gherkin.parser.GherkinParser;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PdslGherkinListenerImpl extends PdslGherkinListener {
 
-    private static final Set<Character> escapeCharacters = Set.of('\\', '|', 'n');
+    private static final Set<Character> ESCAPE_CHARACTERS = Set.of('\\', '|', 'n');
+
     private Optional<GherkinFeature.Builder> builderOptional = Optional.empty();
 
+    private Optional<CommonTokenStream> tokens = Optional.empty();
+
+    @Override
     public Optional<GherkinFeature> getGherkinFeature(URI featurePathOrId) {
-        return builderOptional.isEmpty() ? Optional.empty() : Optional.of(builderOptional.get().withLocation(featurePathOrId).build());
+        return builderOptional.map(builder -> builder.withLocation(featurePathOrId).build());
+    }
+
+    @Override
+    public void setTokenStream(CommonTokenStream tokens) {
+        this.tokens = Optional.ofNullable(tokens);
     }
 
     @Override
@@ -120,24 +133,25 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
         return builder.build();
     }
 
-    private record ExampleTableRow(TerminalNode originalSource, List<String> unescapedCellParameters){}
+    private record ExampleTableRow(TerminalNode originalSource, List<String> unescapedCellParameters) {
+    }
 
     private Map<String, List<GherkinExamplesTable.CellOfExamplesTable>> createSubstitutionMapping(List<ExampleTableRow> rows) {
         Map<String, List<GherkinExamplesTable.CellOfExamplesTable>> substitutions = new HashMap<>();
 
-            List<String> header = rows.getFirst().unescapedCellParameters;
-            for (int i = 0; i < header.size(); i++) { // For each cell entry in a row
-                List<GherkinExamplesTable.CellOfExamplesTable> parameters = new LinkedList<>(); // Create a list of all substitution data
-                for (int j = 1; j < rows.size(); j++) { // Add the cells from the ith column in the table
-                    ExampleTableRow row = rows.get(j); // For each row
-                    parameters.add(new GherkinExamplesTable.CellOfExamplesTable(
-                            row.originalSource.getSymbol().getLine(),
-                            // Get the parameter from the column that matches the header we're iterating over
-                            row.unescapedCellParameters.get(i).strip() // Keep escaped newlines, but ignore whitespace
-                    ));
-                }
-                substitutions.put("<" + header.get(i) + ">", parameters);
+        List<String> header = rows.getFirst().unescapedCellParameters;
+        for (int i = 0; i < header.size(); i++) { // For each cell entry in a row
+            List<GherkinExamplesTable.CellOfExamplesTable> parameters = new LinkedList<>(); // Create a list of all substitution data
+            for (int j = 1; j < rows.size(); j++) { // Add the cells from the ith column in the table
+                ExampleTableRow row = rows.get(j); // For each row
+                parameters.add(new GherkinExamplesTable.CellOfExamplesTable(
+                        row.originalSource.getSymbol().getLine(),
+                        // Get the parameter from the column that matches the header we're iterating over
+                        row.unescapedCellParameters.get(i).strip() // Keep escaped newlines, but ignore whitespace
+                ));
             }
+            substitutions.put("<" + header.get(i) + ">", parameters);
+        }
         return substitutions;
     }
 
@@ -151,24 +165,17 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
         List<GherkinStep> steps = new LinkedList<>();
         if (ctx.startingStep() == null) {
             return steps;
-        } else { // TODO: Refactor the duplicate code. This is ugly
+        } else {
             GherkinStep.Builder stepBuilder = new GherkinStep.Builder();
+
             if (ctx.startingStep().GIVEN_STEP() != null) {
-                stepBuilder.withStepContent(ctx.startingStep().GIVEN_STEP().getText());
-                stepBuilder.withStepKeyword(GherkinStep.StepType.GIVEN,
-                        ctx.startingStep().GIVEN_STEP().getSymbol().getText());
+                setStepContentAndKeyword(stepBuilder, GherkinStep.StepType.GIVEN, ctx.startingStep().GIVEN_STEP());
             } else if (ctx.startingStep().WHEN_STEP() != null) {
-                stepBuilder.withStepContent(ctx.startingStep().WHEN_STEP().getText());
-                stepBuilder.withStepKeyword(GherkinStep.StepType.WHEN,
-                        ctx.startingStep().WHEN_STEP().getSymbol().getText());
+                setStepContentAndKeyword(stepBuilder, GherkinStep.StepType.WHEN, ctx.startingStep().WHEN_STEP());
             } else if (ctx.startingStep().THEN_STEP() != null) {
-                stepBuilder.withStepContent(ctx.startingStep().THEN_STEP().getText());
-                stepBuilder.withStepKeyword(GherkinStep.StepType.THEN,
-                        ctx.startingStep().THEN_STEP().getSymbol().getText());
+                setStepContentAndKeyword(stepBuilder, GherkinStep.StepType.THEN, ctx.startingStep().THEN_STEP());
             } else if (ctx.startingStep().WILD_STEP() != null) {
-                stepBuilder.withStepContent(ctx.startingStep().WILD_STEP().getText());
-                stepBuilder.withStepKeyword(GherkinStep.StepType.WILD,
-                        ctx.startingStep().WILD_STEP().getSymbol().getText());
+                setStepContentAndKeyword(stepBuilder, GherkinStep.StepType.WILD, ctx.startingStep().WILD_STEP());
             } else {
                 throw new IllegalArgumentException("Error creating a step");
             }
@@ -181,7 +188,7 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
                 ctx.startingStep().DATA_ROW().forEach(r -> tableData.add(transformRowData(r.getText())
                         .stream()
                         .map(GherkinString::new)
-                        .collect(Collectors.toList())
+                        .toList()
                 ));
                 stepBuilder.withDataTable(tableData);
             }
@@ -190,30 +197,17 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
             for (GherkinParser.AnyStepContext stepCtx : ctx.anyStep()) {
                 GherkinStep.Builder anyStepBuilder = new GherkinStep.Builder();
                 if (stepCtx.GIVEN_STEP() != null) {
-                    anyStepBuilder.withStepContent(stepCtx.GIVEN_STEP().getText());
-                    anyStepBuilder.withStepKeyword(GherkinStep.StepType.GIVEN,
-                            stepCtx.GIVEN_STEP().getSymbol().getText());
-
+                    setStepContentAndKeyword(anyStepBuilder, GherkinStep.StepType.GIVEN, stepCtx.GIVEN_STEP());
                 } else if (stepCtx.WHEN_STEP() != null) {
-                    anyStepBuilder.withStepContent(stepCtx.WHEN_STEP().getText());
-                    anyStepBuilder.withStepKeyword(GherkinStep.StepType.WHEN,
-                            stepCtx.WHEN_STEP().getSymbol().getText());
+                    setStepContentAndKeyword(anyStepBuilder, GherkinStep.StepType.WHEN, stepCtx.WHEN_STEP());
                 } else if (stepCtx.THEN_STEP() != null) {
-                    anyStepBuilder.withStepContent(stepCtx.THEN_STEP().getText());
-                    anyStepBuilder.withStepKeyword(GherkinStep.StepType.THEN,
-                            stepCtx.THEN_STEP().getSymbol().getText());
+                    setStepContentAndKeyword(anyStepBuilder, GherkinStep.StepType.THEN, stepCtx.THEN_STEP());
                 } else if (stepCtx.BUT_STEP() != null) {
-                    anyStepBuilder.withStepContent(stepCtx.BUT_STEP().getText());
-                    anyStepBuilder.withStepKeyword(GherkinStep.StepType.BUT,
-                            stepCtx.BUT_STEP().getSymbol().getText());
+                    setStepContentAndKeyword(anyStepBuilder, GherkinStep.StepType.BUT, stepCtx.BUT_STEP());
                 } else if (stepCtx.WILD_STEP() != null) {
-                    anyStepBuilder.withStepContent(stepCtx.WILD_STEP().getText());
-                    anyStepBuilder.withStepKeyword(GherkinStep.StepType.WILD,
-                            stepCtx.WILD_STEP().getSymbol().getText());
+                    setStepContentAndKeyword(anyStepBuilder, GherkinStep.StepType.WILD, stepCtx.WILD_STEP());
                 } else if (stepCtx.AND_STEP() != null) {
-                    anyStepBuilder.withStepContent(stepCtx.AND_STEP().getText());
-                    anyStepBuilder.withStepKeyword(GherkinStep.StepType.AND,
-                            stepCtx.AND_STEP().getSymbol().getText());
+                    setStepContentAndKeyword(anyStepBuilder, GherkinStep.StepType.AND, stepCtx.AND_STEP());
                 } else {
                     throw new IllegalArgumentException("Error creating a step");
                 }
@@ -226,7 +220,7 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
                     stepCtx.DATA_ROW().forEach(r -> tableData.add(transformRowData(r.getText())
                             .stream()
                             .map(GherkinString::new)
-                            .collect(Collectors.toList())
+                            .toList()
                     ));
                     anyStepBuilder.withDataTable(tableData);
                 }
@@ -234,6 +228,49 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
             }
         }
         return steps;
+    }
+
+    private List<String> getCommentsBefore(Token token) {
+        if (tokens.isEmpty()) {
+            return List.of();
+        }
+        int tokenIndex = token.getTokenIndex();
+        List<String> comments = new ArrayList<>();
+        for (int i = tokenIndex - 1; i >= 0; i--) {
+            Token t = tokens.get().get(i);
+            if (t.getChannel() == Token.DEFAULT_CHANNEL) {
+                break;
+            }
+            if (t.getType() == GherkinLexer.COMMENT) {
+                // remove comment symbol in the beginning of line
+                String clean = t.getText().trim().substring(1);
+                if (!clean.isEmpty()) {
+                    comments.addFirst(clean); // prepend to preserve order
+                }
+            }
+        }
+        return comments;
+    }
+
+    private void setStepContentAndKeyword(GherkinStep.Builder stepBuilder, GherkinStep.StepType type,
+                                          TerminalNode node) {
+        String rawText = node.getText();
+
+        Matcher m = Pattern.compile("(?s)(.*?)\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(#.*)").matcher(rawText);
+        String stepContent;
+        if (m.matches()) {
+            stepContent = m.group(1);
+            stepBuilder.addComments(m.group(2).trim().substring(1));
+        } else {
+            stepContent = rawText;
+        }
+        stepBuilder.withStepContent(stepContent);
+        stepBuilder.withStepKeyword(type, stepContent);
+        if (node.getSymbol() != null) {
+            for (String comment : getCommentsBefore(node.getSymbol())) {
+                stepBuilder.addComments(comment);
+            }
+        }
     }
 
     private GherkinBackground transformBackground(GherkinParser.BackgroundContext ctx) {
@@ -258,7 +295,7 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
         for (int i = 1; i < row.length(); i++) {
             char c = row.charAt(i);
             if (possibleEscapeCharacter) {
-                if (escapeCharacters.contains(c)) {
+                if (ESCAPE_CHARACTERS.contains(c)) {
                     cellText.append(c == 'n' ? "\n" : c);
                 } else { // False escape
                     cellText.append("\\" + c);

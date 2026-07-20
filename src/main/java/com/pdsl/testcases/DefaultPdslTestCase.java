@@ -58,7 +58,8 @@ public class DefaultPdslTestCase implements TestCase {
                 .map(Optional::get)
                 .map(ParseTree::getText)
                 .toList();
-       metadata = new ConcurrentHashMap<>();
+        metadata = new ConcurrentHashMap<>();
+        fillPhraseComments(metadata, phrasesToTestSections);
     }
 
     public DefaultPdslTestCase(String testCaseTitle, List<TestBodyFragment> testBodyFragments, URI source,
@@ -86,6 +87,7 @@ public class DefaultPdslTestCase implements TestCase {
                 .map(ParseTree::getText)
                 .toList();
         this.metadata = metadata;
+        fillPhraseComments(metadata, phrasesToTestSections);
     }
 
     @Override
@@ -134,6 +136,17 @@ public class DefaultPdslTestCase implements TestCase {
        return phrasesToTestSections;
     }
 
+    private void fillPhraseComments(Map<String, Object> metadata,
+                                    List<FilteredPhrase> phrasesToTestSections) {
+        Map<Integer, List<String>> comments = new HashMap<>();
+        for (int phraseIndex = 0; phraseIndex < phrasesToTestSections.size(); phraseIndex++) {
+            List<String> phraseComments = phrasesToTestSections.get(phraseIndex).getComments();
+            if (!phraseComments.isEmpty()) {
+                comments.put(phraseIndex, phraseComments);
+            }
+        }
+        metadata.put(STEP_COMMENTS, comments);
+    }
 
     /**
      * A comparator for sorting PDSL TestCase objects.

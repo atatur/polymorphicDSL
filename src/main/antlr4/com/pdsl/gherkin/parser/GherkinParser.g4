@@ -2,8 +2,7 @@ parser grammar GherkinParser;
 
 options { tokenVocab=GherkinLexer; } 
 
-gherkinDocument : LANGUAGE_HEADER? COMMENT* feature
-	| COMMENT+
+gherkinDocument : LANGUAGE_HEADER? feature
 	| EOF
 	;
 feature : TAGS*? FEATURE_TITLE LONG_DESCRIPTION*?  background?  (ruleBlock | scenario)*;

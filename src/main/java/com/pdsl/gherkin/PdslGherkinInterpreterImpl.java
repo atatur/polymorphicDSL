@@ -20,6 +20,7 @@ public class PdslGherkinInterpreterImpl implements PdslGherkinRecognizer {
     public Optional<GherkinFeature> interpretGherkinFile(URI testResource, PdslGherkinListener listener) throws IOException {
         GherkinLexer lexer = new GherkinLexer(CharStreams.fromStream(testResource.toURL().openStream()));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+        listener.setTokenStream(tokens);
         GherkinParser parser = new GherkinParser(tokens);
         parser.setBuildParseTree(true); // tell ANTLR to build a parse tree
         ParseTree tree = parser.gherkinDocument();
@@ -60,6 +61,7 @@ public class PdslGherkinInterpreterImpl implements PdslGherkinRecognizer {
     public Optional<GherkinFeature> interpretGherkinFileStrictly(InputStream featureFileContent, URI featurePathOrId) throws IOException {
         GherkinLexer lexer = new GherkinLexer(CharStreams.fromStream(featureFileContent));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+        listener.setTokenStream(tokens);
         GherkinParser parser = new GherkinParser(tokens);
         parser.setBuildParseTree(true); // tell ANTLR to build a parse tree
         ParseTree tree = parser.gherkinDocument();

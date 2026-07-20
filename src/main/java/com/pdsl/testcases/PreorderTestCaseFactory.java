@@ -59,7 +59,7 @@ public class PreorderTestCaseFactory implements TestCaseFactory {
         // Get Metadata
         if (parentMetaData.isPresent() && childMetaData.isPresent()) {
             childMetaData = Optional.of(combineMetadata(parentMetaData.get(), childMetaData.get()));
-        } else if (parentMetaData.isPresent() && childMetaData.isEmpty()) {
+        } else if (parentMetaData.isPresent()) {
             childMetaData = parentMetaData;
         }
         // Add phrases in this node if present

@@ -8,6 +8,7 @@ public class GherkinStep {
     private final StepType stepType;
     private final Optional<GherkinDocString> docString;
     private final Optional<List<List<GherkinString>>> dataTable;
+    private final Optional<List<String>> comments;
     private final String stepKeywordText;
     private final GherkinString stepContent;
 
@@ -20,6 +21,7 @@ public class GherkinStep {
         this.dataTable = builder.dataTable.isEmpty() ? Optional.empty() : Optional.of(builder.dataTable);
         this.stepKeywordText = builder.stepKeywordText;
         this.stepContent = new GherkinString(builder.stepContent);
+        this.comments = builder.comments.isEmpty() ? Optional.empty() : Optional.of(builder.comments);
     }
 
     public StepType getStepType() {
@@ -40,6 +42,10 @@ public class GherkinStep {
 
     public GherkinString getStepContent() {
         return stepContent;
+    }
+
+    public Optional<List<String>> getComments() {
+        return comments;
     }
 
     /**
@@ -74,6 +80,7 @@ public class GherkinStep {
     public static class Builder {
         private String docString = "";
         private List<List<GherkinString>> dataTable = new ArrayList<>();
+        private List<String> comments = new ArrayList<>();
         private String stepContent;
         private String stepKeywordText;
         private StepType stepType;
@@ -100,6 +107,18 @@ public class GherkinStep {
 
         public Builder withDocString(String docString) {
             this.docString = docString;
+            return this;
+        }
+
+        public Builder withComments(List<String> comments) {
+            this.comments = comments;
+            return this;
+        }
+
+        public Builder addComments(String stepContent) {
+            if (stepContent != null && !stepContent.isEmpty()) {
+                this.comments.add(stepContent);
+            }
             return this;
         }
     }

@@ -1,5 +1,9 @@
 lexer grammar GherkinLexer;
 
+channels {
+    COMMENTS
+}
+
 fragment LANGUAGE_KEYWORD : WS* '#' WS* 'language' WS* ':' WS*;
 LANGUAGE_HEADER : LANGUAGE_KEYWORD 'en' LINE_END -> mode(DEFAULT_MODE) ;
 
@@ -118,6 +122,7 @@ fragment CELL_CHARACTER
 	|	ESCAPE_SEQUENCE
 	;
 fragment CELL_DATA : WS* CELL_CHARACTER* '|';
+fragment STEP_DATA : ~[ @\r\n|#] (~[#\r\n] | '"' (~["\\\r\n] | '\\' .)* '"')* ;
 
 DOCSTRING : DOCSTRING_DOUBLE_QUOTES | DOCSTRING_BACKTICKS ;
 TAGS : WS* TAG (WS* TAG)* (COMMENT? | LINE_END);
@@ -128,20 +133,22 @@ SCENARIO_TITLE : WS* SCENARIO_KEYWORD ~[\r\n]* LINE_END ;
 SCENARIO_OUTLINE_TITLE : WS* SCENARIO_OUTLINE_KEYWORD (CAPTURE_DATA | ~[\r\n])* LINE_END ;
 RULE_TITLE : WS* RULE_KEYWORD ~[\r\n]* LINE_END ;
 
-GIVEN_STEP : WS* GIVEN_KEYWORD ~[ @\r\n|] ~[\r\n]* LINE_END;
-WHEN_STEP : WS* WHEN_KEYWORD ~[ @\r\n|] ~[\r\n]* LINE_END;
-THEN_STEP : WS* THEN_KEYWORD ~[ @\r\n|] ~[\r\n]* LINE_END;
-AND_STEP : WS* AND_KEYWORD ~[ @\r\n|] ~[\r\n]* LINE_END;
-BUT_STEP : WS* BUT_KEYWORD ~[ @\r\n|] ~[\r\n]* LINE_END;
-WILD_STEP : WS* WILD_KEYWORD ~[ @\r\n|] ~[\r\n]* LINE_END;
+GIVEN_STEP : WS* GIVEN_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+WHEN_STEP : WS* WHEN_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+THEN_STEP : WS* THEN_KEYWORD STEP_DATA (COMMENT | LINE_END);
+AND_STEP : WS* AND_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+BUT_STEP : WS* BUT_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+WILD_STEP : WS* WILD_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
 
 DATA_ROW : WS* '|' CELL_DATA+ LINE_END ;
 INVALID_LANGUAGE_HEADER : LANGUAGE_KEYWORD ~[\r\n]* LINE_END ;
-COMMENT : WS* '#' ~[\r\n]* LINE_END -> channel(HIDDEN) ;
 LINE_END : WS* (NEWLINE+ | EOF) -> skip;
 NEWLINE : [\r\n] -> skip ;
 WS : [ \t] -> skip;
-LONG_DESCRIPTION : WS* ~[ @\r\n|] ~[\r\n]* LINE_END ;
+LONG_DESCRIPTION : WS* STEP_DATA (LINE_END)? ;
+
+// --- Comment Routing ---
+COMMENT : WS* '#' ~[\r\n]* LINE_END? -> channel(COMMENTS) ;
 ///////////////////////////////////////////////////
 
 //Afrikaans
@@ -235,11 +242,11 @@ mode AF;
 
     AF_RULE_TITLE : WS* AF_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AF_GIVEN_STEP : WS* AF_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AF_WHEN_STEP : WS* AF_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AF_THEN_STEP : WS* AF_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AF_AND_STEP : WS* AF_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AF_BUT_STEP : WS* AF_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AF_GIVEN_STEP : WS* AF_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AF_WHEN_STEP : WS* AF_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AF_THEN_STEP : WS* AF_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AF_AND_STEP : WS* AF_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AF_BUT_STEP : WS* AF_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Armenian
@@ -333,11 +340,11 @@ mode AM;
 
     AM_RULE_TITLE : WS* AM_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AM_GIVEN_STEP : WS* AM_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AM_WHEN_STEP : WS* AM_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AM_THEN_STEP : WS* AM_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AM_AND_STEP : WS* AM_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AM_BUT_STEP : WS* AM_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AM_GIVEN_STEP : WS* AM_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AM_WHEN_STEP : WS* AM_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AM_THEN_STEP : WS* AM_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AM_AND_STEP : WS* AM_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AM_BUT_STEP : WS* AM_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Aragonese
@@ -435,11 +442,11 @@ mode AN;
 
     AN_RULE_TITLE : WS* AN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AN_GIVEN_STEP : WS* AN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AN_WHEN_STEP : WS* AN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AN_THEN_STEP : WS* AN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AN_AND_STEP : WS* AN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AN_BUT_STEP : WS* AN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AN_GIVEN_STEP : WS* AN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AN_WHEN_STEP : WS* AN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AN_THEN_STEP : WS* AN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AN_AND_STEP : WS* AN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AN_BUT_STEP : WS* AN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Arabic
@@ -533,11 +540,11 @@ mode AR;
 
     AR_RULE_TITLE : WS* AR_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AR_GIVEN_STEP : WS* AR_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AR_WHEN_STEP : WS* AR_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AR_THEN_STEP : WS* AR_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AR_AND_STEP : WS* AR_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AR_BUT_STEP : WS* AR_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AR_GIVEN_STEP : WS* AR_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AR_WHEN_STEP : WS* AR_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AR_THEN_STEP : WS* AR_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AR_AND_STEP : WS* AR_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AR_BUT_STEP : WS* AR_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Asturian
@@ -633,11 +640,11 @@ mode AST;
 
     AST_RULE_TITLE : WS* AST_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AST_GIVEN_STEP : WS* AST_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AST_WHEN_STEP : WS* AST_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AST_THEN_STEP : WS* AST_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AST_AND_STEP : WS* AST_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AST_BUT_STEP : WS* AST_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AST_GIVEN_STEP : WS* AST_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AST_WHEN_STEP : WS* AST_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AST_THEN_STEP : WS* AST_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AST_AND_STEP : WS* AST_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AST_BUT_STEP : WS* AST_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Azerbaijani
@@ -734,11 +741,11 @@ mode AZ;
 
     AZ_RULE_TITLE : WS* AZ_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AZ_GIVEN_STEP : WS* AZ_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AZ_WHEN_STEP : WS* AZ_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AZ_THEN_STEP : WS* AZ_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AZ_AND_STEP : WS* AZ_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AZ_BUT_STEP : WS* AZ_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AZ_GIVEN_STEP : WS* AZ_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AZ_WHEN_STEP : WS* AZ_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AZ_THEN_STEP : WS* AZ_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AZ_AND_STEP : WS* AZ_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AZ_BUT_STEP : WS* AZ_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Belarusian
@@ -836,11 +843,11 @@ mode BE;
 
     BE_RULE_TITLE : WS* BE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        BE_GIVEN_STEP : WS* BE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	BE_WHEN_STEP : WS* BE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	BE_THEN_STEP : WS* BE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	BE_AND_STEP : WS* BE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	BE_BUT_STEP : WS* BE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    BE_GIVEN_STEP : WS* BE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	BE_WHEN_STEP : WS* BE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	BE_THEN_STEP : WS* BE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	BE_AND_STEP : WS* BE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	BE_BUT_STEP : WS* BE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Bulgarian
@@ -932,11 +939,11 @@ mode BG;
 
     BG_RULE_TITLE : WS* BG_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        BG_GIVEN_STEP : WS* BG_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	BG_WHEN_STEP : WS* BG_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	BG_THEN_STEP : WS* BG_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	BG_AND_STEP : WS* BG_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	BG_BUT_STEP : WS* BG_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    BG_GIVEN_STEP : WS* BG_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	BG_WHEN_STEP : WS* BG_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	BG_THEN_STEP : WS* BG_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	BG_AND_STEP : WS* BG_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	BG_BUT_STEP : WS* BG_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Malay
@@ -1035,11 +1042,11 @@ mode BM;
 
     BM_RULE_TITLE : WS* BM_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        BM_GIVEN_STEP : WS* BM_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	BM_WHEN_STEP : WS* BM_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	BM_THEN_STEP : WS* BM_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	BM_AND_STEP : WS* BM_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	BM_BUT_STEP : WS* BM_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    BM_GIVEN_STEP : WS* BM_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	BM_WHEN_STEP : WS* BM_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	BM_THEN_STEP : WS* BM_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	BM_AND_STEP : WS* BM_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	BM_BUT_STEP : WS* BM_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Bosnian
@@ -1134,11 +1141,11 @@ mode BS;
 
     BS_RULE_TITLE : WS* BS_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        BS_GIVEN_STEP : WS* BS_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	BS_WHEN_STEP : WS* BS_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	BS_THEN_STEP : WS* BS_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	BS_AND_STEP : WS* BS_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	BS_BUT_STEP : WS* BS_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    BS_GIVEN_STEP : WS* BS_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	BS_WHEN_STEP : WS* BS_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	BS_THEN_STEP : WS* BS_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	BS_AND_STEP : WS* BS_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	BS_BUT_STEP : WS* BS_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Catalan
@@ -1236,11 +1243,11 @@ mode CA;
 
     CA_RULE_TITLE : WS* CA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        CA_GIVEN_STEP : WS* CA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	CA_WHEN_STEP : WS* CA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	CA_THEN_STEP : WS* CA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	CA_AND_STEP : WS* CA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	CA_BUT_STEP : WS* CA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    CA_GIVEN_STEP : WS* CA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	CA_WHEN_STEP : WS* CA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	CA_THEN_STEP : WS* CA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	CA_AND_STEP : WS* CA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	CA_BUT_STEP : WS* CA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Czech
@@ -1336,11 +1343,11 @@ mode CS;
 
     CS_RULE_TITLE : WS* CS_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        CS_GIVEN_STEP : WS* CS_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	CS_WHEN_STEP : WS* CS_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	CS_THEN_STEP : WS* CS_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	CS_AND_STEP : WS* CS_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	CS_BUT_STEP : WS* CS_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    CS_GIVEN_STEP : WS* CS_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	CS_WHEN_STEP : WS* CS_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	CS_THEN_STEP : WS* CS_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	CS_AND_STEP : WS* CS_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	CS_BUT_STEP : WS* CS_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Welsh
@@ -1432,11 +1439,11 @@ mode CY_GB;
 
     CY_GB_RULE_TITLE : WS* CY_GB_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        CY_GB_GIVEN_STEP : WS* CY_GB_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	CY_GB_WHEN_STEP : WS* CY_GB_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	CY_GB_THEN_STEP : WS* CY_GB_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	CY_GB_AND_STEP : WS* CY_GB_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	CY_GB_BUT_STEP : WS* CY_GB_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    CY_GB_GIVEN_STEP : WS* CY_GB_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	CY_GB_WHEN_STEP : WS* CY_GB_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	CY_GB_THEN_STEP : WS* CY_GB_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	CY_GB_AND_STEP : WS* CY_GB_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	CY_GB_BUT_STEP : WS* CY_GB_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Danish
@@ -1528,11 +1535,11 @@ mode DA;
 
     DA_RULE_TITLE : WS* DA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        DA_GIVEN_STEP : WS* DA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	DA_WHEN_STEP : WS* DA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	DA_THEN_STEP : WS* DA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	DA_AND_STEP : WS* DA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	DA_BUT_STEP : WS* DA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    DA_GIVEN_STEP : WS* DA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	DA_WHEN_STEP : WS* DA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	DA_THEN_STEP : WS* DA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	DA_AND_STEP : WS* DA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	DA_BUT_STEP : WS* DA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //German
@@ -1632,11 +1639,11 @@ mode DE;
 
     DE_RULE_TITLE : WS* DE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        DE_GIVEN_STEP : WS* DE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	DE_WHEN_STEP : WS* DE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	DE_THEN_STEP : WS* DE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	DE_AND_STEP : WS* DE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	DE_BUT_STEP : WS* DE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    DE_GIVEN_STEP : WS* DE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	DE_WHEN_STEP : WS* DE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	DE_THEN_STEP : WS* DE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	DE_AND_STEP : WS* DE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	DE_BUT_STEP : WS* DE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Greek
@@ -1731,11 +1738,11 @@ mode EL;
 
     EL_RULE_TITLE : WS* EL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EL_GIVEN_STEP : WS* EL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EL_WHEN_STEP : WS* EL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EL_THEN_STEP : WS* EL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EL_AND_STEP : WS* EL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EL_BUT_STEP : WS* EL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EL_GIVEN_STEP : WS* EL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EL_WHEN_STEP : WS* EL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EL_THEN_STEP : WS* EL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EL_AND_STEP : WS* EL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EL_BUT_STEP : WS* EL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Emoji
@@ -1827,11 +1834,11 @@ mode EM;
 
     EM_RULE_TITLE : WS* EM_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EM_GIVEN_STEP : WS* EM_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EM_WHEN_STEP : WS* EM_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EM_THEN_STEP : WS* EM_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EM_AND_STEP : WS* EM_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EM_BUT_STEP : WS* EM_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EM_GIVEN_STEP : WS* EM_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EM_WHEN_STEP : WS* EM_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EM_THEN_STEP : WS* EM_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EM_AND_STEP : WS* EM_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EM_BUT_STEP : WS* EM_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //English
@@ -1927,11 +1934,11 @@ mode EN;
 
     EN_RULE_TITLE : WS* EN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_GIVEN_STEP : WS* EN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_WHEN_STEP : WS* EN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_THEN_STEP : WS* EN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_AND_STEP : WS* EN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_BUT_STEP : WS* EN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_GIVEN_STEP : WS* EN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_WHEN_STEP : WS* EN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_THEN_STEP : WS* EN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_AND_STEP : WS* EN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_BUT_STEP : WS* EN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Scouse
@@ -2025,11 +2032,11 @@ mode EN_SCOUSE;
 
     EN_SCOUSE_RULE_TITLE : WS* EN_SCOUSE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_SCOUSE_GIVEN_STEP : WS* EN_SCOUSE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_SCOUSE_WHEN_STEP : WS* EN_SCOUSE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_SCOUSE_THEN_STEP : WS* EN_SCOUSE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_SCOUSE_AND_STEP : WS* EN_SCOUSE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_SCOUSE_BUT_STEP : WS* EN_SCOUSE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_SCOUSE_GIVEN_STEP : WS* EN_SCOUSE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_SCOUSE_WHEN_STEP : WS* EN_SCOUSE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_SCOUSE_THEN_STEP : WS* EN_SCOUSE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_SCOUSE_AND_STEP : WS* EN_SCOUSE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_SCOUSE_BUT_STEP : WS* EN_SCOUSE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Australian
@@ -2120,11 +2127,11 @@ mode EN_AU;
 
     EN_AU_RULE_TITLE : WS* EN_AU_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_AU_GIVEN_STEP : WS* EN_AU_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_AU_WHEN_STEP : WS* EN_AU_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_AU_THEN_STEP : WS* EN_AU_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_AU_AND_STEP : WS* EN_AU_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_AU_BUT_STEP : WS* EN_AU_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_AU_GIVEN_STEP : WS* EN_AU_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_AU_WHEN_STEP : WS* EN_AU_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_AU_THEN_STEP : WS* EN_AU_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_AU_AND_STEP : WS* EN_AU_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_AU_BUT_STEP : WS* EN_AU_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //LOLCAT
@@ -2215,11 +2222,11 @@ mode EN_LOL;
 
     EN_LOL_RULE_TITLE : WS* EN_LOL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_LOL_GIVEN_STEP : WS* EN_LOL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_LOL_WHEN_STEP : WS* EN_LOL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_LOL_THEN_STEP : WS* EN_LOL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_LOL_AND_STEP : WS* EN_LOL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_LOL_BUT_STEP : WS* EN_LOL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_LOL_GIVEN_STEP : WS* EN_LOL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_LOL_WHEN_STEP : WS* EN_LOL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_LOL_THEN_STEP : WS* EN_LOL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_LOL_AND_STEP : WS* EN_LOL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_LOL_BUT_STEP : WS* EN_LOL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Old English
@@ -2328,11 +2335,11 @@ mode EN_OLD;
 
     EN_OLD_RULE_TITLE : WS* EN_OLD_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_OLD_GIVEN_STEP : WS* EN_OLD_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_OLD_WHEN_STEP : WS* EN_OLD_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_OLD_THEN_STEP : WS* EN_OLD_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_OLD_AND_STEP : WS* EN_OLD_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_OLD_BUT_STEP : WS* EN_OLD_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_OLD_GIVEN_STEP : WS* EN_OLD_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_OLD_WHEN_STEP : WS* EN_OLD_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_OLD_THEN_STEP : WS* EN_OLD_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_OLD_AND_STEP : WS* EN_OLD_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_OLD_BUT_STEP : WS* EN_OLD_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Pirate
@@ -2423,11 +2430,11 @@ mode EN_PIRATE;
 
     EN_PIRATE_RULE_TITLE : WS* EN_PIRATE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_PIRATE_GIVEN_STEP : WS* EN_PIRATE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_PIRATE_WHEN_STEP : WS* EN_PIRATE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_PIRATE_THEN_STEP : WS* EN_PIRATE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_PIRATE_AND_STEP : WS* EN_PIRATE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_PIRATE_BUT_STEP : WS* EN_PIRATE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_PIRATE_GIVEN_STEP : WS* EN_PIRATE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_PIRATE_WHEN_STEP : WS* EN_PIRATE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_PIRATE_THEN_STEP : WS* EN_PIRATE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_PIRATE_AND_STEP : WS* EN_PIRATE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_PIRATE_BUT_STEP : WS* EN_PIRATE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Texas
@@ -2521,11 +2528,11 @@ mode EN_TX;
 
     EN_TX_RULE_TITLE : WS* EN_TX_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EN_TX_GIVEN_STEP : WS* EN_TX_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EN_TX_WHEN_STEP : WS* EN_TX_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EN_TX_THEN_STEP : WS* EN_TX_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EN_TX_AND_STEP : WS* EN_TX_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EN_TX_BUT_STEP : WS* EN_TX_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EN_TX_GIVEN_STEP : WS* EN_TX_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EN_TX_WHEN_STEP : WS* EN_TX_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EN_TX_THEN_STEP : WS* EN_TX_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EN_TX_AND_STEP : WS* EN_TX_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EN_TX_BUT_STEP : WS* EN_TX_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Esperanto
@@ -2621,11 +2628,11 @@ mode EO;
 
     EO_RULE_TITLE : WS* EO_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        EO_GIVEN_STEP : WS* EO_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	EO_WHEN_STEP : WS* EO_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	EO_THEN_STEP : WS* EO_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	EO_AND_STEP : WS* EO_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	EO_BUT_STEP : WS* EO_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    EO_GIVEN_STEP : WS* EO_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	EO_WHEN_STEP : WS* EO_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	EO_THEN_STEP : WS* EO_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	EO_AND_STEP : WS* EO_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	EO_BUT_STEP : WS* EO_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Spanish
@@ -2724,11 +2731,11 @@ mode ES;
 
     ES_RULE_TITLE : WS* ES_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        ES_GIVEN_STEP : WS* ES_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	ES_WHEN_STEP : WS* ES_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	ES_THEN_STEP : WS* ES_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	ES_AND_STEP : WS* ES_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	ES_BUT_STEP : WS* ES_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    ES_GIVEN_STEP : WS* ES_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	ES_WHEN_STEP : WS* ES_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	ES_THEN_STEP : WS* ES_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	ES_AND_STEP : WS* ES_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	ES_BUT_STEP : WS* ES_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Estonian
@@ -2821,11 +2828,11 @@ mode ET;
 
     ET_RULE_TITLE : WS* ET_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        ET_GIVEN_STEP : WS* ET_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	ET_WHEN_STEP : WS* ET_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	ET_THEN_STEP : WS* ET_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	ET_AND_STEP : WS* ET_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	ET_BUT_STEP : WS* ET_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    ET_GIVEN_STEP : WS* ET_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	ET_WHEN_STEP : WS* ET_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	ET_THEN_STEP : WS* ET_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	ET_AND_STEP : WS* ET_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	ET_BUT_STEP : WS* ET_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Persian
@@ -2917,11 +2924,11 @@ mode FA;
 
     FA_RULE_TITLE : WS* FA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        FA_GIVEN_STEP : WS* FA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	FA_WHEN_STEP : WS* FA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	FA_THEN_STEP : WS* FA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	FA_AND_STEP : WS* FA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	FA_BUT_STEP : WS* FA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    FA_GIVEN_STEP : WS* FA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	FA_WHEN_STEP : WS* FA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	FA_THEN_STEP : WS* FA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	FA_AND_STEP : WS* FA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	FA_BUT_STEP : WS* FA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Finnish
@@ -3012,11 +3019,11 @@ mode FI;
 
     FI_RULE_TITLE : WS* FI_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        FI_GIVEN_STEP : WS* FI_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	FI_WHEN_STEP : WS* FI_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	FI_THEN_STEP : WS* FI_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	FI_AND_STEP : WS* FI_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	FI_BUT_STEP : WS* FI_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    FI_GIVEN_STEP : WS* FI_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	FI_WHEN_STEP : WS* FI_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	FI_THEN_STEP : WS* FI_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	FI_AND_STEP : WS* FI_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	FI_BUT_STEP : WS* FI_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //French
@@ -3131,11 +3138,11 @@ mode FR;
 
     FR_RULE_TITLE : WS* FR_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        FR_GIVEN_STEP : WS* FR_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	FR_WHEN_STEP : WS* FR_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	FR_THEN_STEP : WS* FR_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	FR_AND_STEP : WS* FR_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	FR_BUT_STEP : WS* FR_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    FR_GIVEN_STEP : WS* FR_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	FR_WHEN_STEP : WS* FR_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	FR_THEN_STEP : WS* FR_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	FR_AND_STEP : WS* FR_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	FR_BUT_STEP : WS* FR_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Irish
@@ -3233,11 +3240,11 @@ mode GA;
 
     GA_RULE_TITLE : WS* GA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        GA_GIVEN_STEP : WS* GA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	GA_WHEN_STEP : WS* GA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	GA_THEN_STEP : WS* GA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	GA_AND_STEP : WS* GA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	GA_BUT_STEP : WS* GA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    GA_GIVEN_STEP : WS* GA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	GA_WHEN_STEP : WS* GA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	GA_THEN_STEP : WS* GA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	GA_AND_STEP : WS* GA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	GA_BUT_STEP : WS* GA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Gujarati
@@ -3332,11 +3339,11 @@ mode GJ;
 
     GJ_RULE_TITLE : WS* GJ_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        GJ_GIVEN_STEP : WS* GJ_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	GJ_WHEN_STEP : WS* GJ_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	GJ_THEN_STEP : WS* GJ_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	GJ_AND_STEP : WS* GJ_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	GJ_BUT_STEP : WS* GJ_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    GJ_GIVEN_STEP : WS* GJ_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	GJ_WHEN_STEP : WS* GJ_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	GJ_THEN_STEP : WS* GJ_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	GJ_AND_STEP : WS* GJ_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	GJ_BUT_STEP : WS* GJ_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Galician
@@ -3433,11 +3440,11 @@ mode GL;
 
     GL_RULE_TITLE : WS* GL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        GL_GIVEN_STEP : WS* GL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	GL_WHEN_STEP : WS* GL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	GL_THEN_STEP : WS* GL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	GL_AND_STEP : WS* GL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	GL_BUT_STEP : WS* GL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    GL_GIVEN_STEP : WS* GL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	GL_WHEN_STEP : WS* GL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	GL_THEN_STEP : WS* GL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	GL_AND_STEP : WS* GL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	GL_BUT_STEP : WS* GL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Hebrew
@@ -3530,11 +3537,11 @@ mode HE;
 
     HE_RULE_TITLE : WS* HE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        HE_GIVEN_STEP : WS* HE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	HE_WHEN_STEP : WS* HE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	HE_THEN_STEP : WS* HE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	HE_AND_STEP : WS* HE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	HE_BUT_STEP : WS* HE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    HE_GIVEN_STEP : WS* HE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	HE_WHEN_STEP : WS* HE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	HE_THEN_STEP : WS* HE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	HE_AND_STEP : WS* HE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	HE_BUT_STEP : WS* HE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Hindi
@@ -3632,11 +3639,11 @@ mode HI;
 
     HI_RULE_TITLE : WS* HI_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        HI_GIVEN_STEP : WS* HI_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	HI_WHEN_STEP : WS* HI_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	HI_THEN_STEP : WS* HI_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	HI_AND_STEP : WS* HI_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	HI_BUT_STEP : WS* HI_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    HI_GIVEN_STEP : WS* HI_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	HI_WHEN_STEP : WS* HI_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	HI_THEN_STEP : WS* HI_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	HI_AND_STEP : WS* HI_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	HI_BUT_STEP : WS* HI_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Croatian
@@ -3736,11 +3743,11 @@ mode HR;
 
     HR_RULE_TITLE : WS* HR_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        HR_GIVEN_STEP : WS* HR_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	HR_WHEN_STEP : WS* HR_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	HR_THEN_STEP : WS* HR_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	HR_AND_STEP : WS* HR_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	HR_BUT_STEP : WS* HR_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    HR_GIVEN_STEP : WS* HR_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	HR_WHEN_STEP : WS* HR_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	HR_THEN_STEP : WS* HR_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	HR_AND_STEP : WS* HR_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	HR_BUT_STEP : WS* HR_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Creole
@@ -3845,11 +3852,11 @@ mode HT;
 
     HT_RULE_TITLE : WS* HT_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        HT_GIVEN_STEP : WS* HT_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	HT_WHEN_STEP : WS* HT_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	HT_THEN_STEP : WS* HT_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	HT_AND_STEP : WS* HT_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	HT_BUT_STEP : WS* HT_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    HT_GIVEN_STEP : WS* HT_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	HT_WHEN_STEP : WS* HT_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	HT_THEN_STEP : WS* HT_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	HT_AND_STEP : WS* HT_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	HT_BUT_STEP : WS* HT_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Hungarian
@@ -3944,11 +3951,11 @@ mode HU;
 
     HU_RULE_TITLE : WS* HU_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        HU_GIVEN_STEP : WS* HU_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	HU_WHEN_STEP : WS* HU_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	HU_THEN_STEP : WS* HU_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	HU_AND_STEP : WS* HU_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	HU_BUT_STEP : WS* HU_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    HU_GIVEN_STEP : WS* HU_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	HU_WHEN_STEP : WS* HU_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	HU_THEN_STEP : WS* HU_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	HU_AND_STEP : WS* HU_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	HU_BUT_STEP : WS* HU_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Indonesian
@@ -4049,11 +4056,11 @@ mode ID;
 
     ID_RULE_TITLE : WS* ID_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        ID_GIVEN_STEP : WS* ID_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	ID_WHEN_STEP : WS* ID_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	ID_THEN_STEP : WS* ID_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	ID_AND_STEP : WS* ID_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	ID_BUT_STEP : WS* ID_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    ID_GIVEN_STEP : WS* ID_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	ID_WHEN_STEP : WS* ID_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	ID_THEN_STEP : WS* ID_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	ID_AND_STEP : WS* ID_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	ID_BUT_STEP : WS* ID_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Icelandic
@@ -4146,11 +4153,11 @@ mode IS;
 
     IS_RULE_TITLE : WS* IS_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        IS_GIVEN_STEP : WS* IS_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	IS_WHEN_STEP : WS* IS_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	IS_THEN_STEP : WS* IS_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	IS_AND_STEP : WS* IS_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	IS_BUT_STEP : WS* IS_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    IS_GIVEN_STEP : WS* IS_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	IS_WHEN_STEP : WS* IS_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	IS_THEN_STEP : WS* IS_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	IS_AND_STEP : WS* IS_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	IS_BUT_STEP : WS* IS_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Italian
@@ -4248,11 +4255,11 @@ mode IT;
 
     IT_RULE_TITLE : WS* IT_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        IT_GIVEN_STEP : WS* IT_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	IT_WHEN_STEP : WS* IT_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	IT_THEN_STEP : WS* IT_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	IT_AND_STEP : WS* IT_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	IT_BUT_STEP : WS* IT_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    IT_GIVEN_STEP : WS* IT_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	IT_WHEN_STEP : WS* IT_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	IT_THEN_STEP : WS* IT_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	IT_AND_STEP : WS* IT_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	IT_BUT_STEP : WS* IT_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Japanese
@@ -4352,11 +4359,11 @@ mode JA;
 
     JA_RULE_TITLE : WS* JA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        JA_GIVEN_STEP : WS* JA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	JA_WHEN_STEP : WS* JA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	JA_THEN_STEP : WS* JA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	JA_AND_STEP : WS* JA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	JA_BUT_STEP : WS* JA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    JA_GIVEN_STEP : WS* JA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	JA_WHEN_STEP : WS* JA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	JA_THEN_STEP : WS* JA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	JA_AND_STEP : WS* JA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	JA_BUT_STEP : WS* JA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Javanese
@@ -4453,11 +4460,11 @@ mode JV;
 
     JV_RULE_TITLE : WS* JV_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        JV_GIVEN_STEP : WS* JV_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	JV_WHEN_STEP : WS* JV_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	JV_THEN_STEP : WS* JV_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	JV_AND_STEP : WS* JV_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	JV_BUT_STEP : WS* JV_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    JV_GIVEN_STEP : WS* JV_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	JV_WHEN_STEP : WS* JV_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	JV_THEN_STEP : WS* JV_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	JV_AND_STEP : WS* JV_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	JV_BUT_STEP : WS* JV_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Georgian
@@ -4562,11 +4569,11 @@ mode KA;
 
     KA_RULE_TITLE : WS* KA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        KA_GIVEN_STEP : WS* KA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	KA_WHEN_STEP : WS* KA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	KA_THEN_STEP : WS* KA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	KA_AND_STEP : WS* KA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	KA_BUT_STEP : WS* KA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    KA_GIVEN_STEP : WS* KA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	KA_WHEN_STEP : WS* KA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	KA_THEN_STEP : WS* KA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	KA_AND_STEP : WS* KA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	KA_BUT_STEP : WS* KA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Kannada
@@ -4658,11 +4665,11 @@ mode KN;
 
     KN_RULE_TITLE : WS* KN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        KN_GIVEN_STEP : WS* KN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	KN_WHEN_STEP : WS* KN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	KN_THEN_STEP : WS* KN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	KN_AND_STEP : WS* KN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	KN_BUT_STEP : WS* KN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    KN_GIVEN_STEP : WS* KN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	KN_WHEN_STEP : WS* KN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	KN_THEN_STEP : WS* KN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	KN_AND_STEP : WS* KN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	KN_BUT_STEP : WS* KN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Korean
@@ -4756,11 +4763,11 @@ mode KO;
 
     KO_RULE_TITLE : WS* KO_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        KO_GIVEN_STEP : WS* KO_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	KO_WHEN_STEP : WS* KO_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	KO_THEN_STEP : WS* KO_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	KO_AND_STEP : WS* KO_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	KO_BUT_STEP : WS* KO_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    KO_GIVEN_STEP : WS* KO_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	KO_WHEN_STEP : WS* KO_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	KO_THEN_STEP : WS* KO_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	KO_AND_STEP : WS* KO_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	KO_BUT_STEP : WS* KO_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Lithuanian
@@ -4854,11 +4861,11 @@ mode LT;
 
     LT_RULE_TITLE : WS* LT_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        LT_GIVEN_STEP : WS* LT_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	LT_WHEN_STEP : WS* LT_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	LT_THEN_STEP : WS* LT_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	LT_AND_STEP : WS* LT_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	LT_BUT_STEP : WS* LT_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    LT_GIVEN_STEP : WS* LT_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	LT_WHEN_STEP : WS* LT_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	LT_THEN_STEP : WS* LT_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	LT_AND_STEP : WS* LT_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	LT_BUT_STEP : WS* LT_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Luxemburgish
@@ -4952,11 +4959,11 @@ mode LU;
 
     LU_RULE_TITLE : WS* LU_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        LU_GIVEN_STEP : WS* LU_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	LU_WHEN_STEP : WS* LU_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	LU_THEN_STEP : WS* LU_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	LU_AND_STEP : WS* LU_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	LU_BUT_STEP : WS* LU_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    LU_GIVEN_STEP : WS* LU_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	LU_WHEN_STEP : WS* LU_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	LU_THEN_STEP : WS* LU_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	LU_AND_STEP : WS* LU_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	LU_BUT_STEP : WS* LU_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Latvian
@@ -5051,11 +5058,11 @@ mode LV;
 
     LV_RULE_TITLE : WS* LV_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        LV_GIVEN_STEP : WS* LV_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	LV_WHEN_STEP : WS* LV_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	LV_THEN_STEP : WS* LV_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	LV_AND_STEP : WS* LV_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	LV_BUT_STEP : WS* LV_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    LV_GIVEN_STEP : WS* LV_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	LV_WHEN_STEP : WS* LV_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	LV_THEN_STEP : WS* LV_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	LV_AND_STEP : WS* LV_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	LV_BUT_STEP : WS* LV_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Macedonian
@@ -5155,11 +5162,11 @@ mode MK_CYRL;
 
     MK_CYRL_RULE_TITLE : WS* MK_CYRL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        MK_CYRL_GIVEN_STEP : WS* MK_CYRL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	MK_CYRL_WHEN_STEP : WS* MK_CYRL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	MK_CYRL_THEN_STEP : WS* MK_CYRL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	MK_CYRL_AND_STEP : WS* MK_CYRL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	MK_CYRL_BUT_STEP : WS* MK_CYRL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    MK_CYRL_GIVEN_STEP : WS* MK_CYRL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	MK_CYRL_WHEN_STEP : WS* MK_CYRL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	MK_CYRL_THEN_STEP : WS* MK_CYRL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	MK_CYRL_AND_STEP : WS* MK_CYRL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	MK_CYRL_BUT_STEP : WS* MK_CYRL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Macedonian (Latin)
@@ -5258,11 +5265,11 @@ mode MK_LATN;
 
     MK_LATN_RULE_TITLE : WS* MK_LATN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        MK_LATN_GIVEN_STEP : WS* MK_LATN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	MK_LATN_WHEN_STEP : WS* MK_LATN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	MK_LATN_THEN_STEP : WS* MK_LATN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	MK_LATN_AND_STEP : WS* MK_LATN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	MK_LATN_BUT_STEP : WS* MK_LATN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    MK_LATN_GIVEN_STEP : WS* MK_LATN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	MK_LATN_WHEN_STEP : WS* MK_LATN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	MK_LATN_THEN_STEP : WS* MK_LATN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	MK_LATN_AND_STEP : WS* MK_LATN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	MK_LATN_BUT_STEP : WS* MK_LATN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Mongolian
@@ -5358,11 +5365,11 @@ mode MN;
 
     MN_RULE_TITLE : WS* MN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        MN_GIVEN_STEP : WS* MN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	MN_WHEN_STEP : WS* MN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	MN_THEN_STEP : WS* MN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	MN_AND_STEP : WS* MN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	MN_BUT_STEP : WS* MN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    MN_GIVEN_STEP : WS* MN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	MN_WHEN_STEP : WS* MN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	MN_THEN_STEP : WS* MN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	MN_AND_STEP : WS* MN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	MN_BUT_STEP : WS* MN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Nepali
@@ -5459,11 +5466,11 @@ mode NE;
 
     NE_RULE_TITLE : WS* NE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        NE_GIVEN_STEP : WS* NE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	NE_WHEN_STEP : WS* NE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	NE_THEN_STEP : WS* NE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	NE_AND_STEP : WS* NE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	NE_BUT_STEP : WS* NE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    NE_GIVEN_STEP : WS* NE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	NE_WHEN_STEP : WS* NE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	NE_THEN_STEP : WS* NE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	NE_AND_STEP : WS* NE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	NE_BUT_STEP : WS* NE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Dutch
@@ -5557,11 +5564,11 @@ mode NL;
 
     NL_RULE_TITLE : WS* NL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        NL_GIVEN_STEP : WS* NL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	NL_WHEN_STEP : WS* NL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	NL_THEN_STEP : WS* NL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	NL_AND_STEP : WS* NL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	NL_BUT_STEP : WS* NL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    NL_GIVEN_STEP : WS* NL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	NL_WHEN_STEP : WS* NL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	NL_THEN_STEP : WS* NL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	NL_AND_STEP : WS* NL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	NL_BUT_STEP : WS* NL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Norwegian
@@ -5654,11 +5661,11 @@ mode NO;
 
     NO_RULE_TITLE : WS* NO_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        NO_GIVEN_STEP : WS* NO_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	NO_WHEN_STEP : WS* NO_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	NO_THEN_STEP : WS* NO_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	NO_AND_STEP : WS* NO_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	NO_BUT_STEP : WS* NO_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    NO_GIVEN_STEP : WS* NO_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	NO_WHEN_STEP : WS* NO_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	NO_THEN_STEP : WS* NO_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	NO_AND_STEP : WS* NO_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	NO_BUT_STEP : WS* NO_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Panjabi
@@ -5754,11 +5761,11 @@ mode PA;
 
     PA_RULE_TITLE : WS* PA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        PA_GIVEN_STEP : WS* PA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	PA_WHEN_STEP : WS* PA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	PA_THEN_STEP : WS* PA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	PA_AND_STEP : WS* PA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	PA_BUT_STEP : WS* PA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    PA_GIVEN_STEP : WS* PA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	PA_WHEN_STEP : WS* PA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	PA_THEN_STEP : WS* PA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	PA_AND_STEP : WS* PA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	PA_BUT_STEP : WS* PA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Polish
@@ -5860,11 +5867,11 @@ mode PL;
 
     PL_RULE_TITLE : WS* PL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        PL_GIVEN_STEP : WS* PL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	PL_WHEN_STEP : WS* PL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	PL_THEN_STEP : WS* PL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	PL_AND_STEP : WS* PL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	PL_BUT_STEP : WS* PL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    PL_GIVEN_STEP : WS* PL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	PL_WHEN_STEP : WS* PL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	PL_THEN_STEP : WS* PL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	PL_AND_STEP : WS* PL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	PL_BUT_STEP : WS* PL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Portuguese
@@ -5971,11 +5978,11 @@ mode PT;
 
     PT_RULE_TITLE : WS* PT_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        PT_GIVEN_STEP : WS* PT_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	PT_WHEN_STEP : WS* PT_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	PT_THEN_STEP : WS* PT_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	PT_AND_STEP : WS* PT_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	PT_BUT_STEP : WS* PT_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    PT_GIVEN_STEP : WS* PT_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	PT_WHEN_STEP : WS* PT_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	PT_THEN_STEP : WS* PT_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	PT_AND_STEP : WS* PT_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	PT_BUT_STEP : WS* PT_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Romanian
@@ -6078,11 +6085,11 @@ mode RO;
 
     RO_RULE_TITLE : WS* RO_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        RO_GIVEN_STEP : WS* RO_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	RO_WHEN_STEP : WS* RO_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	RO_THEN_STEP : WS* RO_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	RO_AND_STEP : WS* RO_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	RO_BUT_STEP : WS* RO_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    RO_GIVEN_STEP : WS* RO_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	RO_WHEN_STEP : WS* RO_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	RO_THEN_STEP : WS* RO_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	RO_AND_STEP : WS* RO_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	RO_BUT_STEP : WS* RO_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Russian
@@ -6189,11 +6196,11 @@ mode RU;
 
     RU_RULE_TITLE : WS* RU_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        RU_GIVEN_STEP : WS* RU_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	RU_WHEN_STEP : WS* RU_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	RU_THEN_STEP : WS* RU_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	RU_AND_STEP : WS* RU_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	RU_BUT_STEP : WS* RU_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    RU_GIVEN_STEP : WS* RU_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	RU_WHEN_STEP : WS* RU_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	RU_THEN_STEP : WS* RU_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	RU_AND_STEP : WS* RU_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	RU_BUT_STEP : WS* RU_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Slovak
@@ -6295,11 +6302,11 @@ mode SK;
 
     SK_RULE_TITLE : WS* SK_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        SK_GIVEN_STEP : WS* SK_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	SK_WHEN_STEP : WS* SK_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	SK_THEN_STEP : WS* SK_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	SK_AND_STEP : WS* SK_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	SK_BUT_STEP : WS* SK_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    SK_GIVEN_STEP : WS* SK_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	SK_WHEN_STEP : WS* SK_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	SK_THEN_STEP : WS* SK_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	SK_AND_STEP : WS* SK_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	SK_BUT_STEP : WS* SK_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Slovenian
@@ -6414,11 +6421,11 @@ mode SL;
 
     SL_RULE_TITLE : WS* SL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        SL_GIVEN_STEP : WS* SL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	SL_WHEN_STEP : WS* SL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	SL_THEN_STEP : WS* SL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	SL_AND_STEP : WS* SL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	SL_BUT_STEP : WS* SL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    SL_GIVEN_STEP : WS* SL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	SL_WHEN_STEP : WS* SL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	SL_THEN_STEP : WS* SL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	SL_AND_STEP : WS* SL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	SL_BUT_STEP : WS* SL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Serbian
@@ -6520,11 +6527,11 @@ mode SR_CYRL;
 
     SR_CYRL_RULE_TITLE : WS* SR_CYRL_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        SR_CYRL_GIVEN_STEP : WS* SR_CYRL_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	SR_CYRL_WHEN_STEP : WS* SR_CYRL_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	SR_CYRL_THEN_STEP : WS* SR_CYRL_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	SR_CYRL_AND_STEP : WS* SR_CYRL_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	SR_CYRL_BUT_STEP : WS* SR_CYRL_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    SR_CYRL_GIVEN_STEP : WS* SR_CYRL_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	SR_CYRL_WHEN_STEP : WS* SR_CYRL_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	SR_CYRL_THEN_STEP : WS* SR_CYRL_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	SR_CYRL_AND_STEP : WS* SR_CYRL_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	SR_CYRL_BUT_STEP : WS* SR_CYRL_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Serbian (Latin)
@@ -6627,11 +6634,11 @@ mode SR_LATN;
 
     SR_LATN_RULE_TITLE : WS* SR_LATN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        SR_LATN_GIVEN_STEP : WS* SR_LATN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	SR_LATN_WHEN_STEP : WS* SR_LATN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	SR_LATN_THEN_STEP : WS* SR_LATN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	SR_LATN_AND_STEP : WS* SR_LATN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	SR_LATN_BUT_STEP : WS* SR_LATN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    SR_LATN_GIVEN_STEP : WS* SR_LATN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	SR_LATN_WHEN_STEP : WS* SR_LATN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	SR_LATN_THEN_STEP : WS* SR_LATN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	SR_LATN_AND_STEP : WS* SR_LATN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	SR_LATN_BUT_STEP : WS* SR_LATN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Swedish
@@ -6723,11 +6730,11 @@ mode SV;
 
     SV_RULE_TITLE : WS* SV_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        SV_GIVEN_STEP : WS* SV_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	SV_WHEN_STEP : WS* SV_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	SV_THEN_STEP : WS* SV_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	SV_AND_STEP : WS* SV_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	SV_BUT_STEP : WS* SV_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    SV_GIVEN_STEP : WS* SV_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	SV_WHEN_STEP : WS* SV_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	SV_THEN_STEP : WS* SV_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	SV_AND_STEP : WS* SV_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	SV_BUT_STEP : WS* SV_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Tamil
@@ -6825,11 +6832,11 @@ mode TA;
 
     TA_RULE_TITLE : WS* TA_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        TA_GIVEN_STEP : WS* TA_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	TA_WHEN_STEP : WS* TA_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	TA_THEN_STEP : WS* TA_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	TA_AND_STEP : WS* TA_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	TA_BUT_STEP : WS* TA_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    TA_GIVEN_STEP : WS* TA_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	TA_WHEN_STEP : WS* TA_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	TA_THEN_STEP : WS* TA_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	TA_AND_STEP : WS* TA_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	TA_BUT_STEP : WS* TA_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Thai
@@ -6924,11 +6931,11 @@ mode TH;
 
     TH_RULE_TITLE : WS* TH_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        TH_GIVEN_STEP : WS* TH_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	TH_WHEN_STEP : WS* TH_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	TH_THEN_STEP : WS* TH_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	TH_AND_STEP : WS* TH_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	TH_BUT_STEP : WS* TH_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    TH_GIVEN_STEP : WS* TH_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	TH_WHEN_STEP : WS* TH_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	TH_THEN_STEP : WS* TH_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	TH_AND_STEP : WS* TH_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	TH_BUT_STEP : WS* TH_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Telugu
@@ -7020,11 +7027,11 @@ mode TE;
 
     TE_RULE_TITLE : WS* TE_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        TE_GIVEN_STEP : WS* TE_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	TE_WHEN_STEP : WS* TE_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	TE_THEN_STEP : WS* TE_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	TE_AND_STEP : WS* TE_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	TE_BUT_STEP : WS* TE_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    TE_GIVEN_STEP : WS* TE_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	TE_WHEN_STEP : WS* TE_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	TE_THEN_STEP : WS* TE_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	TE_AND_STEP : WS* TE_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	TE_BUT_STEP : WS* TE_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Klingon
@@ -7123,11 +7130,11 @@ mode TLH;
 
     TLH_RULE_TITLE : WS* TLH_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        TLH_GIVEN_STEP : WS* TLH_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	TLH_WHEN_STEP : WS* TLH_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	TLH_THEN_STEP : WS* TLH_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	TLH_AND_STEP : WS* TLH_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	TLH_BUT_STEP : WS* TLH_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    TLH_GIVEN_STEP : WS* TLH_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	TLH_WHEN_STEP : WS* TLH_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	TLH_THEN_STEP : WS* TLH_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	TLH_AND_STEP : WS* TLH_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	TLH_BUT_STEP : WS* TLH_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Turkish
@@ -7220,11 +7227,11 @@ mode TR;
 
     TR_RULE_TITLE : WS* TR_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        TR_GIVEN_STEP : WS* TR_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	TR_WHEN_STEP : WS* TR_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	TR_THEN_STEP : WS* TR_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	TR_AND_STEP : WS* TR_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	TR_BUT_STEP : WS* TR_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    TR_GIVEN_STEP : WS* TR_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	TR_WHEN_STEP : WS* TR_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	TR_THEN_STEP : WS* TR_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	TR_AND_STEP : WS* TR_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	TR_BUT_STEP : WS* TR_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Tatar
@@ -7319,11 +7326,11 @@ mode TT;
 
     TT_RULE_TITLE : WS* TT_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        TT_GIVEN_STEP : WS* TT_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	TT_WHEN_STEP : WS* TT_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	TT_THEN_STEP : WS* TT_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	TT_AND_STEP : WS* TT_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	TT_BUT_STEP : WS* TT_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    TT_GIVEN_STEP : WS* TT_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	TT_WHEN_STEP : WS* TT_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	TT_THEN_STEP : WS* TT_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	TT_AND_STEP : WS* TT_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	TT_BUT_STEP : WS* TT_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Ukrainian
@@ -7422,11 +7429,11 @@ mode UK;
 
     UK_RULE_TITLE : WS* UK_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        UK_GIVEN_STEP : WS* UK_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	UK_WHEN_STEP : WS* UK_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	UK_THEN_STEP : WS* UK_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	UK_AND_STEP : WS* UK_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	UK_BUT_STEP : WS* UK_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    UK_GIVEN_STEP : WS* UK_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	UK_WHEN_STEP : WS* UK_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	UK_THEN_STEP : WS* UK_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	UK_AND_STEP : WS* UK_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	UK_BUT_STEP : WS* UK_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Urdu
@@ -7522,11 +7529,11 @@ mode UR;
 
     UR_RULE_TITLE : WS* UR_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        UR_GIVEN_STEP : WS* UR_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	UR_WHEN_STEP : WS* UR_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	UR_THEN_STEP : WS* UR_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	UR_AND_STEP : WS* UR_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	UR_BUT_STEP : WS* UR_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    UR_GIVEN_STEP : WS* UR_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	UR_WHEN_STEP : WS* UR_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	UR_THEN_STEP : WS* UR_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	UR_AND_STEP : WS* UR_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	UR_BUT_STEP : WS* UR_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Uzbek
@@ -7619,11 +7626,11 @@ mode UZ;
 
     UZ_RULE_TITLE : WS* UZ_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        UZ_GIVEN_STEP : WS* UZ_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	UZ_WHEN_STEP : WS* UZ_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	UZ_THEN_STEP : WS* UZ_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	UZ_AND_STEP : WS* UZ_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	UZ_BUT_STEP : WS* UZ_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    UZ_GIVEN_STEP : WS* UZ_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	UZ_WHEN_STEP : WS* UZ_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	UZ_THEN_STEP : WS* UZ_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	UZ_AND_STEP : WS* UZ_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	UZ_BUT_STEP : WS* UZ_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Vietnamese
@@ -7717,11 +7724,11 @@ mode VI;
 
     VI_RULE_TITLE : WS* VI_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        VI_GIVEN_STEP : WS* VI_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	VI_WHEN_STEP : WS* VI_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	VI_THEN_STEP : WS* VI_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	VI_AND_STEP : WS* VI_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	VI_BUT_STEP : WS* VI_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    VI_GIVEN_STEP : WS* VI_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	VI_WHEN_STEP : WS* VI_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	VI_THEN_STEP : WS* VI_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	VI_AND_STEP : WS* VI_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	VI_BUT_STEP : WS* VI_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Chinese simplified
@@ -7819,11 +7826,11 @@ mode ZH_CN;
 
     ZH_CN_RULE_TITLE : WS* ZH_CN_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        ZH_CN_GIVEN_STEP : WS* ZH_CN_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	ZH_CN_WHEN_STEP : WS* ZH_CN_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	ZH_CN_THEN_STEP : WS* ZH_CN_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	ZH_CN_AND_STEP : WS* ZH_CN_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	ZH_CN_BUT_STEP : WS* ZH_CN_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    ZH_CN_GIVEN_STEP : WS* ZH_CN_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	ZH_CN_WHEN_STEP : WS* ZH_CN_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	ZH_CN_THEN_STEP : WS* ZH_CN_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	ZH_CN_AND_STEP : WS* ZH_CN_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	ZH_CN_BUT_STEP : WS* ZH_CN_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Malayalam
@@ -7914,11 +7921,11 @@ mode ML;
 
     ML_RULE_TITLE : WS* ML_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        ML_GIVEN_STEP : WS* ML_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	ML_WHEN_STEP : WS* ML_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	ML_THEN_STEP : WS* ML_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	ML_AND_STEP : WS* ML_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	ML_BUT_STEP : WS* ML_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    ML_GIVEN_STEP : WS* ML_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	ML_WHEN_STEP : WS* ML_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	ML_THEN_STEP : WS* ML_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	ML_AND_STEP : WS* ML_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	ML_BUT_STEP : WS* ML_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Chinese traditional
@@ -8015,11 +8022,11 @@ mode ZH_TW;
 
     ZH_TW_RULE_TITLE : WS* ZH_TW_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        ZH_TW_GIVEN_STEP : WS* ZH_TW_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	ZH_TW_WHEN_STEP : WS* ZH_TW_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	ZH_TW_THEN_STEP : WS* ZH_TW_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	ZH_TW_AND_STEP : WS* ZH_TW_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	ZH_TW_BUT_STEP : WS* ZH_TW_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    ZH_TW_GIVEN_STEP : WS* ZH_TW_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	ZH_TW_WHEN_STEP : WS* ZH_TW_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	ZH_TW_THEN_STEP : WS* ZH_TW_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	ZH_TW_AND_STEP : WS* ZH_TW_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	ZH_TW_BUT_STEP : WS* ZH_TW_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Marathi
@@ -8115,11 +8122,11 @@ mode MR;
 
     MR_RULE_TITLE : WS* MR_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        MR_GIVEN_STEP : WS* MR_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	MR_WHEN_STEP : WS* MR_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	MR_THEN_STEP : WS* MR_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	MR_AND_STEP : WS* MR_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	MR_BUT_STEP : WS* MR_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    MR_GIVEN_STEP : WS* MR_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	MR_WHEN_STEP : WS* MR_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	MR_THEN_STEP : WS* MR_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	MR_AND_STEP : WS* MR_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	MR_BUT_STEP : WS* MR_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 
 //Amharic
@@ -8217,9 +8224,9 @@ mode AMH;
 
     AMH_RULE_TITLE : WS* AMH_RULE ~[\r\n]* LINE_END -> type(RULE_TITLE);
 
-        AMH_GIVEN_STEP : WS* AMH_GIVEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(GIVEN_STEP);
-	AMH_WHEN_STEP : WS* AMH_WHEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(WHEN_STEP);
-	AMH_THEN_STEP : WS* AMH_THEN ~[ @\r\n|] ~[\r\n]* LINE_END -> type(THEN_STEP);
-	AMH_AND_STEP : WS* AMH_AND ~[ @\r\n|] ~[\r\n]* LINE_END -> type(AND_STEP);
-	AMH_BUT_STEP : WS* AMH_BUT ~[ @\r\n|] ~[\r\n]* LINE_END -> type(BUT_STEP);
+    AMH_GIVEN_STEP : WS* AMH_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	AMH_WHEN_STEP : WS* AMH_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	AMH_THEN_STEP : WS* AMH_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	AMH_AND_STEP : WS* AMH_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	AMH_BUT_STEP : WS* AMH_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 

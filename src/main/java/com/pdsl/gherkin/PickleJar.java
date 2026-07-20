@@ -200,6 +200,7 @@ class PickleJar {
         private final String scenarioTitleWithParameterSubstitutionsIfNeeded;
         private final Optional<String> longDescription;
         private final List<String> stepsWithParameterSubstitutionsIfNeeded;
+        private final List<List<String>> stepComments;
         private Optional<Set<String>> tags;
         private final int lineNumber;
         private final GherkinScenario.ScenarioPosition scenarioPosition;
@@ -207,10 +208,10 @@ class PickleJar {
         private PickleJarScenario(Builder builder) {
             this.tags = builder.tags;
             this.longDescription = builder.longDescription;
-            this.tags = builder.tags;
             this.lineNumber = builder.lineNumber;
             this.scenarioTitleWithParameterSubstitutionsIfNeeded = builder.titleWithSubstitutions;
             this.stepsWithParameterSubstitutionsIfNeeded = builder.stepsWithSubstitutions;
+            this.stepComments = builder.stepComments;
             this.scenarioPosition = builder.scenarioPosition.orElseThrow();
         }
 
@@ -235,9 +236,14 @@ class PickleJar {
             return stepsWithParameterSubstitutionsIfNeeded;
         }
 
+        public List<List<String>> getStepComments() {
+            return stepComments;
+        }
+
         public static class Builder {
             private final String titleWithSubstitutions;
             private final List<String> stepsWithSubstitutions;
+            private List<List<String>> stepComments = new ArrayList<>();
             private Optional<Set<String>> tags = Optional.empty();
             private Optional<String> longDescription = Optional.empty();
             private int lineNumber = -1;
@@ -246,6 +252,11 @@ class PickleJar {
             public Builder(String titleWithSubstitutions, List<String> stepsWithSubstitutions) {
                 this.titleWithSubstitutions = titleWithSubstitutions;
                 this.stepsWithSubstitutions = stepsWithSubstitutions;
+            }
+
+            public Builder withStepComments(List<List<String>> stepComments) {
+                this.stepComments = stepComments;
+                return this;
             }
 
             public PickleJarScenario build() {

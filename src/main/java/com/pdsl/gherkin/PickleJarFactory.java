@@ -142,7 +142,10 @@ public class PickleJarFactory implements GherkinObservable {
                                 substitutedSteps)
                                 // All parameters should have the same line number, so just get the number from the first one
                                 .withLineNumber(substitutions.values().stream().findFirst().orElseThrow().lineNumber())
-                                .withScenarioPosition(depth, nextOrdinal, tableIndex++);
+                                .withScenarioPosition(depth, nextOrdinal, tableIndex++)
+                                .withStepComments(scenario.getStepsList().orElseThrow().stream()
+                                        .map(step -> step.getComments().orElse(List.of()))
+                                        .toList());
                         if (scenario.getLongDescription().isPresent()) {
                             builder.withLongDescription(scenario.getLongDescription().get().getStringWithSubstitutions(substitutionsAsStrings));
                         }
@@ -170,7 +173,10 @@ public class PickleJarFactory implements GherkinObservable {
                         scenario.getTitle().orElseThrow().getRawString(),
                         stepBody)
                         .withLineNumber(scenario.getLineNumber())
-                        .withScenarioPosition(depth,nextOrdinal, 0);
+                        .withScenarioPosition(depth,nextOrdinal, 0)
+                        .withStepComments(scenario.getStepsList().orElseThrow().stream()
+                                .map(step -> step.getComments().orElse(List.of()))
+                                .toList());
                 if (!tags.isEmpty()) {
                     builder.withTags(processTags(tags));
                 }
@@ -239,8 +245,8 @@ public class PickleJarFactory implements GherkinObservable {
                 List<List<String>> substitutedDataTable =
                         step.getDataTable().get().stream().map(row ->
                                 row.stream().map(GherkinString::getRawString)
-                                        .collect(Collectors.toUnmodifiableList()))
-                                .collect(Collectors.toUnmodifiableList());
+                                        .toList())
+                                .toList();
                 // Convert to a string
                 stepText.append(getDataTableText(substitutedDataTable));
             }
@@ -252,7 +258,7 @@ public class PickleJarFactory implements GherkinObservable {
     private String getDataTableText(List<List<String>> substitutedDataTable) {
         return String.join("\n",  // Separate each row by a line break
                 substitutedDataTable.stream().map(row -> "|" + String.join("|", row) + "|") // Separate each cell with a pipe
-                        .collect(Collectors.toUnmodifiableList())) + "\n";
+                        .toList()) + "\n";
     }
 
     private Set<String> processTags(Collection<String> rawTags) {

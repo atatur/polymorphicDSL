@@ -16,6 +16,10 @@ def generate_keyword_body(keywords):
 language_data = json.load(open('languages/gherkin-languages.json'))
 template = """lexer grammar GherkinLexer;
 
+channels {
+    COMMENTS
+}
+
 fragment LANGUAGE_KEYWORD : WS* '#' WS* 'language' WS* ':' WS*;
 LANGUAGE_HEADER : LANGUAGE_KEYWORD 'en' LINE_END -> mode(DEFAULT_MODE) ;
 """
@@ -27,7 +31,7 @@ for language in language_data.keys():
 
 template += "\n//////////////////////////////////////////////////////////////////////////"
 
-template += '''
+template += r'''
 FEATURE_KEYWORD : ('Feature'
 	| 'Business Need'
 	| 'Ability') ':' -> channel(HIDDEN) ;
@@ -51,41 +55,44 @@ THEN_KEYWORD : 'Then ' ;
 WILD_KEYWORD : '* ' ;
 AND_KEYWORD : 'And ';
 BUT_KEYWORD : 'But ';
-fragment CAPTURE_DATA : '<' ~[>\\t\\r\\n ]'>' ;
+fragment CAPTURE_DATA : '<' ~[>\t\r\n ]'>' ;
 fragment DOCSTRING_DOUBLE_QUOTES : WS* '"""' (CAPTURE_DATA | ~'"' | '"' ~'"')*?  '"""' LINE_END ;
 fragment DOCSTRING_BACKTICKS : WS* '```' (~'`' | CAPTURE_DATA | '`' ~'`').*? '```' LINE_END;
-fragment TAG : '@'~[ \\r\\n\\t@]+ ;
-fragment ESCAPE_SEQUENCE : '\\\\' [\\\\|\\n]* ;
+fragment TAG : '@'~[ \r\n\t@]+ ;
+fragment ESCAPE_SEQUENCE : '\\' [\\|\n]* ;
 fragment CELL_CHARACTER
 	:	CAPTURE_DATA
-	| ~[\\r\\n|\\\\]
+	| ~[\r\n|\\]
 	|	ESCAPE_SEQUENCE
 	;
 fragment CELL_DATA : WS* CELL_CHARACTER* '|';
+fragment STEP_DATA : ~[ @\r\n|#] (~[#\r\n] | '"' (~["\\\r\n] | '\\' .)* '"')* ;
 
 DOCSTRING : DOCSTRING_DOUBLE_QUOTES | DOCSTRING_BACKTICKS ;
 TAGS : WS* TAG (WS* TAG)* (COMMENT? | LINE_END);
-FEATURE_TITLE : WS* FEATURE_KEYWORD ~[\\r\\n]* LINE_END ;
-BACKGROUND_TITLE : WS* BACKGROUND_KEYWORD ~[\\r\\n]* COMMENT? LINE_END ;
-EXAMPLES_TITLE : WS* EXAMPLES_KEYWORD ~[\\r\\n]* COMMENT? LINE_END ;
-SCENARIO_TITLE : WS* SCENARIO_KEYWORD ~[\\r\\n]* LINE_END ;
-SCENARIO_OUTLINE_TITLE : WS* SCENARIO_OUTLINE_KEYWORD (CAPTURE_DATA | ~[\\r\\n])* LINE_END ;
-RULE_TITLE : WS* RULE_KEYWORD ~[\\r\\n]* LINE_END ;
+FEATURE_TITLE : WS* FEATURE_KEYWORD ~[\r\n]* LINE_END ;
+BACKGROUND_TITLE : WS* BACKGROUND_KEYWORD ~[\r\n]* COMMENT? LINE_END ;
+EXAMPLES_TITLE : WS* EXAMPLES_KEYWORD ~[\r\n]* COMMENT? LINE_END ;
+SCENARIO_TITLE : WS* SCENARIO_KEYWORD ~[\r\n]* LINE_END ;
+SCENARIO_OUTLINE_TITLE : WS* SCENARIO_OUTLINE_KEYWORD (CAPTURE_DATA | ~[\r\n])* LINE_END ;
+RULE_TITLE : WS* RULE_KEYWORD ~[\r\n]* LINE_END ;
 
-GIVEN_STEP : WS* GIVEN_KEYWORD ~[ @\\r\\n|] ~[\\r\\n]* LINE_END;
-WHEN_STEP : WS* WHEN_KEYWORD ~[ @\\r\\n|] ~[\\r\\n]* LINE_END;
-THEN_STEP : WS* THEN_KEYWORD ~[ @\\r\\n|] ~[\\r\\n]* LINE_END;
-AND_STEP : WS* AND_KEYWORD ~[ @\\r\\n|] ~[\\r\\n]* LINE_END;
-BUT_STEP : WS* BUT_KEYWORD ~[ @\\r\\n|] ~[\\r\\n]* LINE_END;
-WILD_STEP : WS* WILD_KEYWORD ~[ @\\r\\n|] ~[\\r\\n]* LINE_END;
+GIVEN_STEP : WS* GIVEN_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+WHEN_STEP : WS* WHEN_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+THEN_STEP : WS* THEN_KEYWORD STEP_DATA (COMMENT | LINE_END);
+AND_STEP : WS* AND_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+BUT_STEP : WS* BUT_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+WILD_STEP : WS* WILD_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
 
 DATA_ROW : WS* '|' CELL_DATA+ LINE_END ;
-INVALID_LANGUAGE_HEADER : LANGUAGE_KEYWORD ~[\\r\\n]* LINE_END ;
-COMMENT : WS* '#' ~[\\r\\n]* LINE_END -> channel(HIDDEN) ;
+INVALID_LANGUAGE_HEADER : LANGUAGE_KEYWORD ~[\r\n]* LINE_END ;
 LINE_END : WS* (NEWLINE+ | EOF) -> skip;
-NEWLINE : [\\r\\n] -> skip ;
-WS : [ \\t] -> skip;
-LONG_DESCRIPTION : WS* ~[ @\\r\\n|] ~[\\r\\n]* LINE_END ;
+NEWLINE : [\r\n] -> skip ;
+WS : [ \t] -> skip;
+LONG_DESCRIPTION : WS* STEP_DATA (LINE_END)? ;
+
+// --- Comment Routing ---
+COMMENT : WS* '#' ~[\r\n]* LINE_END? -> channel(COMMENTS) ;
 ///////////////////////////////////////////////////
 '''
 for language in language_data.keys():
@@ -191,11 +198,11 @@ for language in language_data.keys():
 
     {language_code}_RULE_TITLE : WS* {language_code}_RULE ~[\\r\\n]* LINE_END -> type(RULE_TITLE);
 
-        {language_code}_GIVEN_STEP : WS* {language_code}_GIVEN ~[ @\\r\\n|] ~[\\r\\n]* LINE_END -> type(GIVEN_STEP);
-	{language_code}_WHEN_STEP : WS* {language_code}_WHEN ~[ @\\r\\n|] ~[\\r\\n]* LINE_END -> type(WHEN_STEP);
-	{language_code}_THEN_STEP : WS* {language_code}_THEN ~[ @\\r\\n|] ~[\\r\\n]* LINE_END -> type(THEN_STEP);
-	{language_code}_AND_STEP : WS* {language_code}_AND ~[ @\\r\\n|] ~[\\r\\n]* LINE_END -> type(AND_STEP);
-	{language_code}_BUT_STEP : WS* {language_code}_BUT ~[ @\\r\\n|] ~[\\r\\n]* LINE_END -> type(BUT_STEP);
+    {language_code}_GIVEN_STEP : WS* {language_code}_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
+	{language_code}_WHEN_STEP : WS* {language_code}_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
+	{language_code}_THEN_STEP : WS* {language_code}_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
+	{language_code}_AND_STEP : WS* {language_code}_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
+	{language_code}_BUT_STEP : WS* {language_code}_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
 
 """.format(language_code = ul)
 
@@ -203,4 +210,3 @@ for language in language_data.keys():
     f.write(template)
     f.close()
 print("GherkinLexer.g4 regenerated")
- 

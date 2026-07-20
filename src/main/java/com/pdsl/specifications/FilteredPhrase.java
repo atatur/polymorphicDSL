@@ -2,6 +2,7 @@ package com.pdsl.specifications;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,4 +23,13 @@ public interface FilteredPhrase {
      * @return the parse tree if recognized, otherwise an empty optional
      */
     Optional<ParseTree> getParseTree();
+
+    /**
+     * Gets any comments associated with this phrase.
+     *
+     * @return an optional containing the comments, or empty optional if none
+     */
+    default List<String> getComments() {
+        return List.of();
+    }
 }

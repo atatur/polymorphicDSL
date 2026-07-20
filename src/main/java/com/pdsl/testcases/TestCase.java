@@ -17,6 +17,7 @@ public interface TestCase {
 
     String STANDARD_LONG_DESCRIPTION_KEY = "polymorphic-dsl-test-case-long-description";
     String DEFAULT_TAGS = "polymorphic-dsl-test-case-tags";
+    String STEP_COMMENTS = "polymorphic-dsl-step-comments";
     /**
      * Returns the original source file this test was created from.
      *
@@ -97,7 +98,5 @@ public interface TestCase {
      * @return a map of arbitrary objects associated with this test case
      */
     Map<String, Object> getMetadata();
-
-
 
 }
