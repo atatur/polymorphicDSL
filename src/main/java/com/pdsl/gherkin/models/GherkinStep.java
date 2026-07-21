@@ -8,7 +8,8 @@ public class GherkinStep {
     private final StepType stepType;
     private final Optional<GherkinDocString> docString;
     private final Optional<List<List<GherkinString>>> dataTable;
-    private final Optional<List<String>> comments;
+    private final Optional<Collection<String>> comments;
+    private final Optional<Set<String>> tags;
     private final String stepKeywordText;
     private final GherkinString stepContent;
 
@@ -22,30 +23,75 @@ public class GherkinStep {
         this.stepKeywordText = builder.stepKeywordText;
         this.stepContent = new GherkinString(builder.stepContent);
         this.comments = builder.comments.isEmpty() ? Optional.empty() : Optional.of(builder.comments);
+        this.tags = builder.tags.isEmpty() ? Optional.empty() : Optional.of(builder.tags);
     }
 
+    /**
+     * Returns the Gherkin keyword type of this step (e.g., GIVEN, WHEN, THEN).
+     *
+     * @return the {@link StepType} of the step
+     */
     public StepType getStepType() {
         return stepType;
     }
 
+    /**
+     * Returns the multi-line docstring attached to this step, if present.
+     *
+     * @return an {@code Optional} containing the {@link GherkinDocString},
+     *         or {@code Optional.empty()} if there is no docstring
+     */
     public Optional<GherkinDocString> getDocString() {
         return docString;
     }
 
+    /**
+     * Returns the 2D data table attached to this step, if present.
+     *
+     * @return an {@code Optional} containing a list of rows, where each row is a list of
+     *         {@link GherkinString} cells, or {@code Optional.empty()} if there is no data table
+     */
     public Optional<List<List<GherkinString>>> getDataTable() {
         return dataTable;
     }
 
+    /**
+     * Returns the raw Gherkin keyword text of this step (e.g., "Given", "When").
+     *
+     * @return the step keyword as a {@code String}
+     */
     public String getStepKeywordText() {
         return stepKeywordText;
     }
 
+    /**
+     * Returns the text content of the step following the keyword.
+     *
+     * @return the {@link GherkinString} containing the step content
+     */
     public GherkinString getStepContent() {
         return stepContent;
     }
 
-    public Optional<List<String>> getComments() {
+    /**
+     * Returns the comments associated with this step, if any.
+     *
+     * @return an {@code Optional} containing a list of comment strings associated with this step,
+     *         or {@code Optional.empty()} if there are no comments
+     */
+    public Optional<Collection<String>> getComments() {
         return comments;
+    }
+
+    /**
+     * Returns the tags associated with this step, if any.
+     * You can use it for reporting or other purposes.
+     *
+     * @return an {@code Optional} containing a set of tag strings associated with this step,
+     *         or {@code Optional.empty()} if there are no tags
+     */
+    public Optional<Set<String>> getTags() {
+        return tags;
     }
 
     /**
@@ -81,6 +127,7 @@ public class GherkinStep {
         private String docString = "";
         private List<List<GherkinString>> dataTable = new ArrayList<>();
         private List<String> comments = new ArrayList<>();
+        private Set<String> tags = new HashSet<>();
         private String stepContent;
         private String stepKeywordText;
         private StepType stepType;
@@ -110,14 +157,26 @@ public class GherkinStep {
             return this;
         }
 
-        public Builder withComments(List<String> comments) {
-            this.comments = comments;
+        public Builder withComments(Collection<String> comments) {
+            this.comments = new ArrayList<>(comments);
             return this;
         }
 
-        public Builder addComments(String stepContent) {
-            if (stepContent != null && !stepContent.isEmpty()) {
-                this.comments.add(stepContent);
+        public Builder addComment(String stepComment) {
+            if (stepComment != null && !stepComment.isEmpty()) {
+                this.comments.add(stepComment);
+            }
+            return this;
+        }
+
+        public Builder withTags(Set<String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public Builder addTag(String stepTag) {
+            if (stepTag != null && !stepTag.isEmpty()) {
+                this.tags.add(stepTag);
             }
             return this;
         }

@@ -14,7 +14,10 @@ import java.util.regex.Pattern;
 
 public class PdslGherkinListenerImpl extends PdslGherkinListener {
 
+    private static final String GHERKIN_TAG_PREFIX = "@";
     private static final Set<Character> ESCAPE_CHARACTERS = Set.of('\\', '|', 'n');
+    private static final Pattern STEP_WITH_INLINE_COMMENT_PATTERN =
+            Pattern.compile("(?s)(.*?)\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(#.*)");
 
     private Optional<GherkinFeature.Builder> builderOptional = Optional.empty();
 
@@ -230,49 +233,6 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
         return steps;
     }
 
-    private List<String> getCommentsBefore(Token token) {
-        if (tokens.isEmpty()) {
-            return List.of();
-        }
-        int tokenIndex = token.getTokenIndex();
-        List<String> comments = new ArrayList<>();
-        for (int i = tokenIndex - 1; i >= 0; i--) {
-            Token t = tokens.get().get(i);
-            if (t.getChannel() == Token.DEFAULT_CHANNEL) {
-                break;
-            }
-            if (t.getType() == GherkinLexer.COMMENT) {
-                // remove comment symbol in the beginning of line
-                String clean = t.getText().trim().substring(1);
-                if (!clean.isEmpty()) {
-                    comments.addFirst(clean); // prepend to preserve order
-                }
-            }
-        }
-        return comments;
-    }
-
-    private void setStepContentAndKeyword(GherkinStep.Builder stepBuilder, GherkinStep.StepType type,
-                                          TerminalNode node) {
-        String rawText = node.getText();
-
-        Matcher m = Pattern.compile("(?s)(.*?)\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(#.*)").matcher(rawText);
-        String stepContent;
-        if (m.matches()) {
-            stepContent = m.group(1);
-            stepBuilder.addComments(m.group(2).trim().substring(1));
-        } else {
-            stepContent = rawText;
-        }
-        stepBuilder.withStepContent(stepContent);
-        stepBuilder.withStepKeyword(type, stepContent);
-        if (node.getSymbol() != null) {
-            for (String comment : getCommentsBefore(node.getSymbol())) {
-                stepBuilder.addComments(comment);
-            }
-        }
-    }
-
     private GherkinBackground transformBackground(GherkinParser.BackgroundContext ctx) {
         GherkinBackground.Builder background = new GherkinBackground.Builder();
         if (ctx.BACKGROUND_TITLE() != null) {
@@ -298,7 +258,7 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
                 if (ESCAPE_CHARACTERS.contains(c)) {
                     cellText.append(c == 'n' ? "\n" : c);
                 } else { // False escape
-                    cellText.append("\\" + c);
+                    cellText.append("\\").append(c);
                 }
                 possibleEscapeCharacter = false;
             } else {
@@ -328,5 +288,53 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
         StringBuilder stringBuilder = new StringBuilder();
         nodeList.forEach(s -> stringBuilder.append(s.getText()));
         return stringBuilder.toString();
+    }
+
+    protected List<String> getCommentsBefore(Token token) {
+        if (token == null || tokens.isEmpty()) {
+            return List.of();
+        }
+        int tokenIndex = token.getTokenIndex();
+        List<String> comments = new ArrayList<>();
+        for (int i = tokenIndex - 1; i >= 0; i--) {
+            Token t = tokens.get().get(i);
+            if (t.getChannel() == Token.DEFAULT_CHANNEL) {
+                break;
+            }
+            if (t.getType() == GherkinLexer.COMMENT) {
+                // remove comment symbol in the beginning of line
+                String clean = t.getText().trim().substring(1);
+                if (!clean.isEmpty()) {
+                    comments.addFirst(clean.trim());
+                }
+            }
+        }
+        return comments;
+    }
+
+    void setStepContentAndKeyword(GherkinStep.Builder stepBuilder, GherkinStep.StepType type,
+                                  TerminalNode node) {
+        String rawText = node.getText();
+        Matcher m = STEP_WITH_INLINE_COMMENT_PATTERN.matcher(rawText);
+        String stepContent;
+        if (m.matches()) {
+            stepContent = m.group(1);
+            addCommentOrTag(m.group(2).substring(1).trim(), stepBuilder);
+        } else {
+            stepContent = rawText;
+        }
+        for (String comment : getCommentsBefore(node.getSymbol())) {
+            addCommentOrTag(comment, stepBuilder);
+        }
+        stepBuilder.withStepKeyword(type, stepContent)
+                .withStepContent(stepContent);
+    }
+
+    private void addCommentOrTag(String commentContent, GherkinStep.Builder stepBuilder) {
+        if (commentContent.startsWith(GHERKIN_TAG_PREFIX)) {
+            stepBuilder.addTag(commentContent);
+        } else {
+            stepBuilder.addComment(commentContent);
+        }
     }
 }

@@ -313,7 +313,9 @@ public class DefaultGherkinTestSpecificationFactory implements GherkinTestSpecif
             List<FilteredPhrase> decoratedPhrases = new ArrayList<>();
             List<FilteredPhrase> originalPhrases = phrases.get();
             for (int i = 0; i < originalPhrases.size(); i++) {
-                List<String> comments = (i < stepBody.size()) ? stepBody.get(i).getComments().orElse(List.of()) : List.of();
+                List<String> comments = (i < stepBody.size())
+                        ? List.copyOf(stepBody.get(i).getComments().orElse(List.of()))
+                        : List.of();
                 decoratedPhrases.add(new DecoratedFilteredPhrase(originalPhrases.get(i), comments));
             }
             return Optional.of(decoratedPhrases);

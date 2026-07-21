@@ -144,7 +144,7 @@ public class PickleJarFactory implements GherkinObservable {
                                 .withLineNumber(substitutions.values().stream().findFirst().orElseThrow().lineNumber())
                                 .withScenarioPosition(depth, nextOrdinal, tableIndex++)
                                 .withStepComments(scenario.getStepsList().orElseThrow().stream()
-                                        .map(step -> step.getComments().orElse(List.of()))
+                                        .map(step -> step.getComments().orElse(List.of()).stream().toList())
                                         .toList());
                         if (scenario.getLongDescription().isPresent()) {
                             builder.withLongDescription(scenario.getLongDescription().get().getStringWithSubstitutions(substitutionsAsStrings));
@@ -175,7 +175,7 @@ public class PickleJarFactory implements GherkinObservable {
                         .withLineNumber(scenario.getLineNumber())
                         .withScenarioPosition(depth,nextOrdinal, 0)
                         .withStepComments(scenario.getStepsList().orElseThrow().stream()
-                                .map(step -> step.getComments().orElse(List.of()))
+                                .map(step -> List.copyOf(step.getComments().orElse(List.of())))
                                 .toList());
                 if (!tags.isEmpty()) {
                     builder.withTags(processTags(tags));
