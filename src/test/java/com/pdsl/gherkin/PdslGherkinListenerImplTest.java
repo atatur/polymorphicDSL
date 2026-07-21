@@ -26,7 +26,6 @@ public class PdslGherkinListenerImplTest {
         assertThat(step.getStepContent().getRawString()).isEqualTo("Given some step text");
         assertThat(step.getStepType()).isEqualTo(GherkinStep.StepType.GIVEN);
         assertThat(step.getComments().isPresent()).isFalse();
-        assertThat(step.getTags().isPresent()).isFalse();
     }
 
     @Test
@@ -45,7 +44,6 @@ public class PdslGherkinListenerImplTest {
         assertThat(step.getStepType()).isEqualTo(GherkinStep.StepType.WHEN);
         assertThat(step.getComments().isPresent()).isTrue();
         assertThat(step.getComments().get()).containsExactly("some inline comment");
-        assertThat(step.getTags().isPresent()).isFalse();
     }
 
     @Test
@@ -54,7 +52,7 @@ public class PdslGherkinListenerImplTest {
         GherkinStep.Builder builder = new GherkinStep.Builder();
         TerminalNode mockNode = Mockito.mock(TerminalNode.class);
 
-        when(mockNode.getText()).thenReturn("Then some step text #@tag1");
+        when(mockNode.getText()).thenReturn("Then some step text #@tag1 @tag2");
         when(mockNode.getSymbol()).thenReturn(null);
 
         listener.setStepContentAndKeyword(builder, GherkinStep.StepType.THEN, mockNode);
@@ -62,9 +60,8 @@ public class PdslGherkinListenerImplTest {
 
         assertThat(step.getStepContent().getRawString()).isEqualTo("Then some step text");
         assertThat(step.getStepType()).isEqualTo(GherkinStep.StepType.THEN);
-        assertThat(step.getComments().isPresent()).isFalse();
-        assertThat(step.getTags().isPresent()).isTrue();
-        assertThat(step.getTags().get()).containsExactly("@tag1");
+        assertThat(step.getComments().isPresent()).isTrue();
+        assertThat(step.getComments().get()).containsExactly("@tag1", "@tag2");
     }
 
     @Test
@@ -82,9 +79,7 @@ public class PdslGherkinListenerImplTest {
         GherkinStep step = builder.build();
 
         assertThat(step.getStepContent().getRawString()).isEqualTo("Given some step text");
-        assertThat(step.getTags().isPresent()).isTrue();
-        assertThat(step.getTags().get()).containsExactly("@inlineTag", "@beforeTag");
         assertThat(step.getComments().isPresent()).isTrue();
-        assertThat(step.getComments().get()).containsExactly("beforeComment");
+        assertThat(step.getComments().get()).containsExactly("@inlineTag", "@beforeTag", "beforeComment");
     }
 }

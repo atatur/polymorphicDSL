@@ -9,7 +9,6 @@ public class GherkinStep {
     private final Optional<GherkinDocString> docString;
     private final Optional<List<List<GherkinString>>> dataTable;
     private final Optional<Collection<String>> comments;
-    private final Optional<Set<String>> tags;
     private final String stepKeywordText;
     private final GherkinString stepContent;
 
@@ -22,8 +21,7 @@ public class GherkinStep {
         this.dataTable = builder.dataTable.isEmpty() ? Optional.empty() : Optional.of(builder.dataTable);
         this.stepKeywordText = builder.stepKeywordText;
         this.stepContent = new GherkinString(builder.stepContent);
-        this.comments = builder.comments.isEmpty() ? Optional.empty() : Optional.of(builder.comments);
-        this.tags = builder.tags.isEmpty() ? Optional.empty() : Optional.of(builder.tags);
+        this.comments = builder.comments.isEmpty() ? Optional.empty() : Optional.of(new ArrayList<>(builder.comments));
     }
 
     /**
@@ -84,17 +82,6 @@ public class GherkinStep {
     }
 
     /**
-     * Returns the tags associated with this step, if any.
-     * You can use it for reporting or other purposes.
-     *
-     * @return an {@code Optional} containing a set of tag strings associated with this step,
-     *         or {@code Optional.empty()} if there are no tags
-     */
-    public Optional<Set<String>> getTags() {
-        return tags;
-    }
-
-    /**
      * Returns the text content of this step including the docstring xor datatable if present
      *
      * @return
@@ -126,8 +113,7 @@ public class GherkinStep {
     public static class Builder {
         private String docString = "";
         private List<List<GherkinString>> dataTable = new ArrayList<>();
-        private List<String> comments = new ArrayList<>();
-        private Set<String> tags = new HashSet<>();
+        private Collection<String> comments = new ArrayList<>();
         private String stepContent;
         private String stepKeywordText;
         private StepType stepType;
@@ -165,18 +151,6 @@ public class GherkinStep {
         public Builder addComment(String stepComment) {
             if (stepComment != null && !stepComment.isEmpty()) {
                 this.comments.add(stepComment);
-            }
-            return this;
-        }
-
-        public Builder withTags(Set<String> tags) {
-            this.tags = tags;
-            return this;
-        }
-
-        public Builder addTag(String stepTag) {
-            if (stepTag != null && !stepTag.isEmpty()) {
-                this.tags.add(stepTag);
             }
             return this;
         }

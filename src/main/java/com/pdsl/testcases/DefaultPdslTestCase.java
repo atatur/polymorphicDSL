@@ -5,6 +5,7 @@ import com.pdsl.specifications.FilteredPhrase;
 
 import java.io.InputStream;
 import java.net.URI;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.*;
@@ -31,9 +32,9 @@ public class DefaultPdslTestCase implements TestCase {
     /**
      * Creates a PDSL test case.
      *
-     * @param testCaseTitle title of the test case
+     * @param testCaseTitle     title of the test case
      * @param testBodyFragments chunks of phrases that may or may not execute
-     * @param source the original source this test case was created from
+     * @param source            the original source this test case was created from
      */
     public DefaultPdslTestCase(String testCaseTitle, List<TestBodyFragment> testBodyFragments, URI source) {
 
@@ -59,7 +60,7 @@ public class DefaultPdslTestCase implements TestCase {
                 .map(ParseTree::getText)
                 .toList();
         metadata = new ConcurrentHashMap<>();
-        fillPhraseComments(metadata, phrasesToTestSections);
+        fillPhraseMetadata(metadata, phrasesToTestSections);
     }
 
     public DefaultPdslTestCase(String testCaseTitle, List<TestBodyFragment> testBodyFragments, URI source,
@@ -87,7 +88,7 @@ public class DefaultPdslTestCase implements TestCase {
                 .map(ParseTree::getText)
                 .toList();
         this.metadata = metadata;
-        fillPhraseComments(metadata, phrasesToTestSections);
+        fillPhraseMetadata(metadata, phrasesToTestSections);
     }
 
     @Override
@@ -96,7 +97,10 @@ public class DefaultPdslTestCase implements TestCase {
     }
 
     @Override
-    public URI getOriginalSource() { return source; }
+    public URI getOriginalSource() {
+        return source;
+    }
+
     @Override
     public List<String> getUnfilteredPhraseBody() {
         return unfilteredPhraseBody;
@@ -133,10 +137,10 @@ public class DefaultPdslTestCase implements TestCase {
 
     @Override
     public List<FilteredPhrase> getFilteredPhrases() {
-       return phrasesToTestSections;
+        return phrasesToTestSections;
     }
 
-    private void fillPhraseComments(Map<String, Object> metadata,
+    private void fillPhraseMetadata(Map<String, Object> metadata,
                                     List<FilteredPhrase> phrasesToTestSections) {
         Map<Integer, List<String>> comments = new HashMap<>();
         for (int phraseIndex = 0; phraseIndex < phrasesToTestSections.size(); phraseIndex++) {
@@ -145,7 +149,7 @@ public class DefaultPdslTestCase implements TestCase {
                 comments.put(phraseIndex, phraseComments);
             }
         }
-        metadata.put(STEP_COMMENTS, comments);
+        metadata.put(TestCase.STEP_COMMENTS, comments);
     }
 
     /**
@@ -171,7 +175,7 @@ public class DefaultPdslTestCase implements TestCase {
                 try {
                     return Integer.compare(Integer.parseInt(fragment1.substring(NUMBER_INDEX)),
                             Integer.parseInt(fragment2.substring(NUMBER_INDEX)));
-                } catch(NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     // If there is no fragment specifying 'line=', then treat the URIs as strings.
                     return source1.getOriginalSource().toString().compareTo(
                             source2.getOriginalSource().toString());

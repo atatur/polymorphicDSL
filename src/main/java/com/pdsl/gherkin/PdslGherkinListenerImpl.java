@@ -319,22 +319,36 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
         String stepContent;
         if (m.matches()) {
             stepContent = m.group(1);
-            addCommentOrTag(m.group(2).substring(1).trim(), stepBuilder);
+            processComments(m.group(2).substring(1).trim(), stepBuilder);
         } else {
             stepContent = rawText;
         }
         for (String comment : getCommentsBefore(node.getSymbol())) {
-            addCommentOrTag(comment, stepBuilder);
+            processComments(comment, stepBuilder);
         }
         stepBuilder.withStepKeyword(type, stepContent)
                 .withStepContent(stepContent);
     }
 
-    private void addCommentOrTag(String commentContent, GherkinStep.Builder stepBuilder) {
-        if (commentContent.startsWith(GHERKIN_TAG_PREFIX)) {
-            stepBuilder.addTag(commentContent);
-        } else {
+    private void processComments(String commentContent, GherkinStep.Builder stepBuilder) {
+        if (commentContent == null || commentContent.isBlank()) {
+            return;
+        }
+        int tagIndex = commentContent.indexOf(GHERKIN_TAG_PREFIX);
+        if (tagIndex == -1) {
             stepBuilder.addComment(commentContent);
+            return;
+        }
+        String commentPart = commentContent.substring(0, tagIndex).trim();
+        if (!commentPart.isEmpty()) {
+            stepBuilder.addComment(commentContent);
+        }
+        String[] tags = commentContent.substring(tagIndex + 1).split(GHERKIN_TAG_PREFIX);
+        for (String tag : tags) {
+            tag = tag.trim();
+            if (!tag.isEmpty()) {
+                stepBuilder.addComment(GHERKIN_TAG_PREFIX + tag);
+            }
         }
     }
 }
