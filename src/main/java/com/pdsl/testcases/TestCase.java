@@ -18,10 +18,9 @@ public interface TestCase {
     String STANDARD_LONG_DESCRIPTION_KEY = "polymorphic-dsl-test-case-long-description";
     String DEFAULT_TAGS = "polymorphic-dsl-test-case-tags";
     String STEP_COMMENTS = "polymorphic-dsl-step-comments";
-    String STEP_TAGS = "polymorphic-dsl-step-tags";
     /**
      * Returns the original source file this test was created from.
-     *
+     * <p>
      * Note that the URI return might differ from the original source file because fragments might be added
      * to convey additional information about a specific.
      * (e.g. ./Some.feature could become ./Some.feature#line=3 to refer to the specific scenario in the file)
