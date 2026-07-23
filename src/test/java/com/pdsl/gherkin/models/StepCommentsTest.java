@@ -54,18 +54,18 @@ public class StepCommentsTest {
         GherkinStep firstStep = steps.getFirst();
         assertThat(firstStep.getStepContent().getRawString().trim()).isEqualTo("When First step");
         assertThat(firstStep.getComments().isPresent()).isTrue();
-        assertThat(firstStep.getComments().get()).containsExactly("my_tag1 my_tag_2", "before line comment First");
+        assertThat(firstStep.getComments().get())
+                .containsExactly("my_tag1 my_tag_2", "before line comment First");
     }
 
     @Test
-    public void inlineComment_parsedAndStoredCorrectly() {
+    public void lineWithDashComment_parsedAndStoredCorrectly() {
         GherkinStep secondStep = steps.get(1);
-        assertThat(secondStep.getStepContent().getRawString().trim()).isEqualTo("Then Second step");
+        assertThat(secondStep.getStepContent().getRawString().trim())
+                .isEqualTo("Then Second step #inline comment for Second");
         assertThat(secondStep.getComments().isPresent()).isTrue();
-        assertThat(secondStep.getComments().get()).containsExactly(
-                "before comment for Second",
-                "before comment#2 for Second",
-                "inline comment for Second");
+        assertThat(secondStep.getComments().get())
+                .containsExactly("before comment for Second", "before comment#2 for Second");
     }
 
     @Test
@@ -76,7 +76,7 @@ public class StepCommentsTest {
     }
 
     @Test
-    public void inlineValue_parsedAndStoredCorrectly() {
+    public void inlineValueWithDash_parsedAndStoredCorrectly() {
         GherkinStep fourthStep = steps.get(3);
         assertThat(fourthStep.getStepContent().getRawString().trim())
                 .isEqualTo("And Fourth step with \"#value\"");
@@ -100,8 +100,9 @@ public class StepCommentsTest {
         assertThat(allComments.get(0))
                 .containsExactly("my_tag1 my_tag_2", "before line comment First");
         assertThat(allComments.get(1))
-                .containsExactly("inline comment for Second", "before comment for Second", "before comment#2 for Second");
+                .containsExactly("before comment for Second", "before comment#2 for Second");
         assertThat(allComments.get(2)).isNull();
-        assertThat(allComments.get(3)).containsExactly("before line comment for Fourth");
+        assertThat(allComments.get(3))
+                .containsExactly("before line comment for Fourth");
     }
 }

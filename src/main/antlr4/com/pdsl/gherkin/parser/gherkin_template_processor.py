@@ -66,33 +66,32 @@ fragment CELL_CHARACTER
 	|	ESCAPE_SEQUENCE
 	;
 fragment CELL_DATA : WS* CELL_CHARACTER* '|';
-fragment STEP_DATA : ~[ @\r\n|#] (~[#\r\n] | '"' (~["\\\r\n] | '\\' .)* '"')* ;
+fragment STEP_DATA : ~[ @\r\n|#] ~[\r\n]* ;
 
 DOCSTRING : DOCSTRING_DOUBLE_QUOTES | DOCSTRING_BACKTICKS ;
-TAGS : WS* TAG (WS* TAG)* (COMMENT? | LINE_END);
+TAGS : (WS* TAG)+ (COMMENT | LINE_END);
 FEATURE_TITLE : WS* FEATURE_KEYWORD ~[\r\n]* LINE_END ;
-BACKGROUND_TITLE : WS* BACKGROUND_KEYWORD ~[\r\n]* COMMENT? LINE_END ;
-EXAMPLES_TITLE : WS* EXAMPLES_KEYWORD ~[\r\n]* COMMENT? LINE_END ;
+BACKGROUND_TITLE : WS* BACKGROUND_KEYWORD ~[\r\n]* LINE_END ;
+EXAMPLES_TITLE : WS* EXAMPLES_KEYWORD ~[\r\n]* LINE_END ;
 SCENARIO_TITLE : WS* SCENARIO_KEYWORD ~[\r\n]* LINE_END ;
 SCENARIO_OUTLINE_TITLE : WS* SCENARIO_OUTLINE_KEYWORD (CAPTURE_DATA | ~[\r\n])* LINE_END ;
 RULE_TITLE : WS* RULE_KEYWORD ~[\r\n]* LINE_END ;
 
-GIVEN_STEP : WS* GIVEN_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
-WHEN_STEP : WS* WHEN_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
-THEN_STEP : WS* THEN_KEYWORD STEP_DATA (COMMENT | LINE_END);
-AND_STEP : WS* AND_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
-BUT_STEP : WS* BUT_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
-WILD_STEP : WS* WILD_KEYWORD STEP_DATA (COMMENT | LINE_END) ;
+GIVEN_STEP : WS* GIVEN_KEYWORD STEP_DATA LINE_END;
+WHEN_STEP : WS* WHEN_KEYWORD STEP_DATA LINE_END;
+THEN_STEP : WS* THEN_KEYWORD STEP_DATA LINE_END;
+AND_STEP : WS* AND_KEYWORD STEP_DATA LINE_END;
+BUT_STEP : WS* BUT_KEYWORD STEP_DATA LINE_END;
+WILD_STEP : WS* WILD_KEYWORD STEP_DATA LINE_END;
 
 DATA_ROW : WS* '|' CELL_DATA+ LINE_END ;
 INVALID_LANGUAGE_HEADER : LANGUAGE_KEYWORD ~[\r\n]* LINE_END ;
 LINE_END : WS* (NEWLINE+ | EOF) -> skip;
 NEWLINE : [\r\n] -> skip ;
 WS : [ \t] -> skip;
-LONG_DESCRIPTION : WS* STEP_DATA (LINE_END)? ;
-
+LONG_DESCRIPTION : WS* STEP_DATA LINE_END ;
 // --- Comment Routing ---
-COMMENT : WS* '#' ~[\r\n]* LINE_END? -> channel(COMMENTS) ;
+COMMENT : WS* '#' ~[\r\n]* LINE_END -> channel(COMMENTS);
 ///////////////////////////////////////////////////
 '''
 for language in language_data.keys():
@@ -188,9 +187,9 @@ for language in language_data.keys():
     template += """
     {language_code}_FEATURE_TITLE : WS* {language_code}_FEATURE ~[\\r\\n]* WS* LINE_END -> type(FEATURE_TITLE) ;
 
-    {language_code}_BACKGROUND_TITLE : WS* {language_code}_BACKGROUND ~[\\r\\n]* COMMENT? LINE_END -> type(BACKGROUND_TITLE) ;
+    {language_code}_BACKGROUND_TITLE : WS* {language_code}_BACKGROUND ~[\\r\\n]* LINE_END -> type(BACKGROUND_TITLE) ;
 
-    {language_code}_EXAMPLES_TITLE : WS* {language_code}_EXAMPLES ~[\\r\\n]* COMMENT? LINE_END -> type(EXAMPLES_TITLE);
+    {language_code}_EXAMPLES_TITLE : WS* {language_code}_EXAMPLES ~[\\r\\n]* LINE_END -> type(EXAMPLES_TITLE);
 
     {language_code}_SCENARIO_TITLE : WS* {language_code}_SCENARIO ~[\\r\\n]* LINE_END -> type(SCENARIO_TITLE);
 
@@ -198,11 +197,11 @@ for language in language_data.keys():
 
     {language_code}_RULE_TITLE : WS* {language_code}_RULE ~[\\r\\n]* LINE_END -> type(RULE_TITLE);
 
-    {language_code}_GIVEN_STEP : WS* {language_code}_GIVEN STEP_DATA (LINE_END)? -> type(GIVEN_STEP);
-	{language_code}_WHEN_STEP : WS* {language_code}_WHEN STEP_DATA (LINE_END)? -> type(WHEN_STEP);
-	{language_code}_THEN_STEP : WS* {language_code}_THEN STEP_DATA (LINE_END)? -> type(THEN_STEP);
-	{language_code}_AND_STEP : WS* {language_code}_AND STEP_DATA (LINE_END)? -> type(AND_STEP);
-	{language_code}_BUT_STEP : WS* {language_code}_BUT STEP_DATA (LINE_END)? -> type(BUT_STEP);
+    {language_code}_GIVEN_STEP : WS* {language_code}_GIVEN STEP_DATA LINE_END -> type(GIVEN_STEP);
+    {language_code}_WHEN_STEP : WS* {language_code}_WHEN STEP_DATA LINE_END -> type(WHEN_STEP);
+    {language_code}_THEN_STEP : WS* {language_code}_THEN STEP_DATA LINE_END -> type(THEN_STEP);
+    {language_code}_AND_STEP : WS* {language_code}_AND STEP_DATA LINE_END -> type(AND_STEP);
+    {language_code}_BUT_STEP : WS* {language_code}_BUT STEP_DATA LINE_END -> type(BUT_STEP);
 
 """.format(language_code = ul)
 

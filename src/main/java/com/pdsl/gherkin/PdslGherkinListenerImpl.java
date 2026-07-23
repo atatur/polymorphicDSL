@@ -9,15 +9,11 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.net.URI;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class PdslGherkinListenerImpl extends PdslGherkinListener {
 
     private static final String GHERKIN_TAG_PREFIX = "@";
     private static final Set<Character> ESCAPE_CHARACTERS = Set.of('\\', '|', 'n');
-    private static final Pattern STEP_WITH_INLINE_COMMENT_PATTERN =
-            Pattern.compile("(?s)(.*?)\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)(#.*)");
 
     private Optional<GherkinFeature.Builder> builderOptional = Optional.empty();
 
@@ -314,15 +310,7 @@ public class PdslGherkinListenerImpl extends PdslGherkinListener {
 
     void setStepContentAndKeyword(GherkinStep.Builder stepBuilder, GherkinStep.StepType type,
                                   TerminalNode node) {
-        String rawText = node.getText();
-        Matcher m = STEP_WITH_INLINE_COMMENT_PATTERN.matcher(rawText);
-        String stepContent;
-        if (m.matches()) {
-            stepContent = m.group(1);
-            processComments(m.group(2).substring(1).trim(), stepBuilder);
-        } else {
-            stepContent = rawText;
-        }
+        String stepContent = node.getText();
         for (String comment : getCommentsBefore(node.getSymbol())) {
             processComments(comment, stepBuilder);
         }
