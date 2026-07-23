@@ -174,10 +174,10 @@ public class ColorizedLoggerObserver implements ExecutorObserver {
 
     private  void logAfterSuite(MetadataTestRunResults results) {
         if (results.failingTestTotal() == 0) {
-            notifyStreams(AnsiTerminalColorHelper.BRIGHT_GREEN + "All phrases successfully executed!"
+            notifyStreams(AnsiTerminalColorHelper.BRIGHT_GREEN + "All phrases successfully executed!\n"
                     + AnsiTerminalColorHelper.RESET);
         } else {
-            notifyStreams(AnsiTerminalColorHelper.BRIGHT_RED + "There were test failures!"
+            notifyStreams(AnsiTerminalColorHelper.BRIGHT_RED + "There were test failures!\n"
                     + AnsiTerminalColorHelper.RESET);
         }
     }
