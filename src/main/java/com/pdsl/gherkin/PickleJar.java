@@ -270,6 +270,12 @@ class PickleJar {
              * @return this builder instance
              */
             public Builder withStepComments(List<List<String>> stepComments) {
+                Preconditions.checkState(stepComments.size() == stepsWithSubstitutions.size(),
+                                """
+                                The length of stepComments must be the same as stepsWithSubstitutions! (%s vs %s)
+                                """,
+                        stepComments.size(),
+                        stepsWithSubstitutions.size());
                 this.stepComments = stepComments;
                 return this;
             }
