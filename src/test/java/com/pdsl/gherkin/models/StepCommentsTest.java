@@ -26,7 +26,7 @@ import java.util.Set;
 import static com.google.common.truth.Truth.assertThat;
 
 public class StepCommentsTest {
-    private static final String RESOURCE_PATH = "src/test/resources/testdata/good/";
+    private static final String RESOURCE_PATH = "src/test/resources/framework_specifications/features/gherkin/";
     private static final String FILE_NAME = "step_comments.feature";
     private static final PdslGherkinRecognizer TRANSFORMER = new PdslGherkinInterpreterImpl();
     private static final PdslGherkinListenerImpl LISTENER = new PdslGherkinListenerImpl();
