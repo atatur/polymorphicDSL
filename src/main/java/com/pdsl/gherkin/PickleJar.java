@@ -254,6 +254,21 @@ class PickleJar {
                 this.stepsWithSubstitutions = stepsWithSubstitutions;
             }
 
+            /**
+             * <p>The argument is structured as a list of lists because a scenario contains an ordered
+             * list of steps, and each individual step can have its own associated comments (e.g., lines
+             * of comments preceding or attached to it).
+             *
+             * <ul>
+             *   <li>The outer list corresponds 1-to-1 with the steps in this scenario (in the same order
+             *       as the steps provided to the builder constructor).</li>
+             *   <li>The inner {@code List<String>} represents the lines of comments associated with that
+             *       specific step. If a step has no comments, the corresponding list will be empty.</li>
+             * </ul>
+             *
+             * @param stepComments a list of comments for each step, ordered to match the scenario steps
+             * @return this builder instance
+             */
             public Builder withStepComments(List<List<String>> stepComments) {
                 this.stepComments = stepComments;
                 return this;

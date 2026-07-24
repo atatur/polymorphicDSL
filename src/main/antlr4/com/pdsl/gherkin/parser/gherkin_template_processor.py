@@ -66,7 +66,8 @@ fragment CELL_CHARACTER
 	|	ESCAPE_SEQUENCE
 	;
 fragment CELL_DATA : WS* CELL_CHARACTER* '|';
-fragment STEP_DATA : ~[ @\r\n|#] ~[\r\n]* ;
+fragment STEP_DATA : ~[\r\n]* ;
+fragment DESCRIPTION_TEXT : ~[ @\r\n|#] ~[\r\n]* ;
 
 DOCSTRING : DOCSTRING_DOUBLE_QUOTES | DOCSTRING_BACKTICKS ;
 TAGS : (WS* TAG)+ (COMMENT | LINE_END);
@@ -87,9 +88,9 @@ WILD_STEP : WS* WILD_KEYWORD STEP_DATA LINE_END;
 DATA_ROW : WS* '|' CELL_DATA+ LINE_END ;
 INVALID_LANGUAGE_HEADER : LANGUAGE_KEYWORD ~[\r\n]* LINE_END ;
 LINE_END : WS* (NEWLINE+ | EOF) -> skip;
-NEWLINE : [\r\n] -> skip ;
+NEWLINE : [\r\n] -> skip;
 WS : [ \t] -> skip;
-LONG_DESCRIPTION : WS* STEP_DATA LINE_END ;
+LONG_DESCRIPTION : WS* DESCRIPTION_TEXT LINE_END ;
 // --- Comment Routing ---
 COMMENT : WS* '#' ~[\r\n]* LINE_END -> channel(COMMENTS);
 ///////////////////////////////////////////////////

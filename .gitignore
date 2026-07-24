@@ -5,3 +5,8 @@ gen/
 target/
 .idea/
 examples/tutorial/.idea/
+
+# Antlr files
+*.tokens
+*.interp
+**/parser/*.java
