@@ -270,18 +270,8 @@ class PickleJar {
              * @return this builder instance
              */
             public Builder withStepComments(List<List<String>> stepComments) {
-                Preconditions.checkState(stepComments.size() == stepsWithSubstitutions.size(),
-                                """
-                                The length of stepComments must be the same as stepsWithSubstitutions! (%s vs %s)
-                                """,
-                        stepComments.size(),
-                        stepsWithSubstitutions.size());
                 this.stepComments = stepComments;
                 return this;
-            }
-
-            public PickleJarScenario build() {
-                return new PickleJarScenario(this);
             }
 
             public Builder withLineNumber(int lineNumber) {
@@ -303,11 +293,20 @@ class PickleJar {
                 if (tags == null || tags.isEmpty()) {
                     this.tags = Optional.empty();
                 } else {
-                    Set<String> scenarioTags = new HashSet<>();
-                    scenarioTags.addAll(tags);
+                    Set<String> scenarioTags = new HashSet<>(tags);
                     this.tags = Optional.of(scenarioTags);
                 }
                 return this;
+            }
+
+            public PickleJarScenario build() {
+                Preconditions.checkState(stepComments.size() == stepsWithSubstitutions.size(),
+                        """
+                        The length of stepComments must be the same as stepsWithSubstitutions! (%s vs %s)
+                        """,
+                        stepComments.size(),
+                        stepsWithSubstitutions.size());
+                return new PickleJarScenario(this);
             }
 
         }
