@@ -6,15 +6,15 @@
 
     <groupId>com.google.pdsl</groupId>
     <artifactId>pdsl</artifactId>
-    <version>1.12.1</version>
+    <version>1.13.0-SNAPSHOT</version>
 
     <name>pdsl</name>
-    <url>http://www.github.com/google/polymorphicDSL</url>
+    <url>https://www.github.com/google/polymorphicDSL</url>
 
 
     <description>
         The Polymorphic DSL test framework was designed to solve the challenges with testing large, complex systems.
-        Modern architecture requires software to run as distrubited systems or on multiple platforms. The conventional
+        Modern architecture requires software to run as distributed systems or on multiple platforms. The conventional
         cost of testing these systems is quite high.
         PDSL allows a user to describe the system under test using a DSL of some kind: a picture,
         sentences in natural languages, graphs, etc. Using a common DSL allows someone to make deeply scalable tests. A

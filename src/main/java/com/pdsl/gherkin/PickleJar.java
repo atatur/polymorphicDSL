@@ -200,6 +200,7 @@ class PickleJar {
         private final String scenarioTitleWithParameterSubstitutionsIfNeeded;
         private final Optional<String> longDescription;
         private final List<String> stepsWithParameterSubstitutionsIfNeeded;
+        private final List<List<String>> stepComments;
         private Optional<Set<String>> tags;
         private final int lineNumber;
         private final GherkinScenario.ScenarioPosition scenarioPosition;
@@ -207,10 +208,10 @@ class PickleJar {
         private PickleJarScenario(Builder builder) {
             this.tags = builder.tags;
             this.longDescription = builder.longDescription;
-            this.tags = builder.tags;
             this.lineNumber = builder.lineNumber;
             this.scenarioTitleWithParameterSubstitutionsIfNeeded = builder.titleWithSubstitutions;
             this.stepsWithParameterSubstitutionsIfNeeded = builder.stepsWithSubstitutions;
+            this.stepComments = builder.stepComments;
             this.scenarioPosition = builder.scenarioPosition.orElseThrow();
         }
 
@@ -235,9 +236,14 @@ class PickleJar {
             return stepsWithParameterSubstitutionsIfNeeded;
         }
 
+        public List<List<String>> getStepComments() {
+            return stepComments;
+        }
+
         public static class Builder {
             private final String titleWithSubstitutions;
             private final List<String> stepsWithSubstitutions;
+            private List<List<String>> stepComments = new ArrayList<>();
             private Optional<Set<String>> tags = Optional.empty();
             private Optional<String> longDescription = Optional.empty();
             private int lineNumber = -1;
@@ -248,8 +254,24 @@ class PickleJar {
                 this.stepsWithSubstitutions = stepsWithSubstitutions;
             }
 
-            public PickleJarScenario build() {
-                return new PickleJarScenario(this);
+            /**
+             * <p>The argument is structured as a list of lists because a scenario contains an ordered
+             * list of steps, and each individual step can have its own associated comments (e.g., lines
+             * of comments preceding or attached to it).
+             *
+             * <ul>
+             *   <li>The outer list corresponds 1-to-1 with the steps in this scenario (in the same order
+             *       as the steps provided to the builder constructor).</li>
+             *   <li>The inner {@code List<String>} represents the lines of comments associated with that
+             *       specific step. If a step has no comments, the corresponding list will be empty.</li>
+             * </ul>
+             *
+             * @param stepComments a list of comments for each step, ordered to match the scenario steps
+             * @return this builder instance
+             */
+            public Builder withStepComments(List<List<String>> stepComments) {
+                this.stepComments = stepComments;
+                return this;
             }
 
             public Builder withLineNumber(int lineNumber) {
@@ -271,11 +293,20 @@ class PickleJar {
                 if (tags == null || tags.isEmpty()) {
                     this.tags = Optional.empty();
                 } else {
-                    Set<String> scenarioTags = new HashSet<>();
-                    scenarioTags.addAll(tags);
+                    Set<String> scenarioTags = new HashSet<>(tags);
                     this.tags = Optional.of(scenarioTags);
                 }
                 return this;
+            }
+
+            public PickleJarScenario build() {
+                Preconditions.checkState(stepComments.size() == stepsWithSubstitutions.size(),
+                        """
+                        The length of stepComments must be the same as stepsWithSubstitutions! (%s vs %s)
+                        """,
+                        stepComments.size(),
+                        stepsWithSubstitutions.size());
+                return new PickleJarScenario(this);
             }
 
         }
