@@ -1,4 +1,4 @@
-package org.junit.jupiter.extension;
+package com.pdsl.junit.extension;
 
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
