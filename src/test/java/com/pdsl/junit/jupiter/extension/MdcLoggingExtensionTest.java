@@ -1,5 +1,7 @@
-package com.pdsl.junit.extension;
+package com.pdsl.junit.jupiter.extension;
 
+import com.pdsl.junit.jupiter.extension.extension.LoggingConstants;
+import com.pdsl.junit.jupiter.extension.extension.MdcLoggingExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
